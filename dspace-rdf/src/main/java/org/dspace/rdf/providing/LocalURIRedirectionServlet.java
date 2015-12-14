@@ -20,7 +20,7 @@ import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.rdf.negotiation.Negotiator;
-import org.dspace.utils.DSpace;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  *
@@ -63,7 +63,7 @@ public class LocalURIRedirectionServlet extends HttpServlet
 
         String handle = path[0] + "/" + path[1];
         String dspaceURL = 
-                    (new DSpace()).getConfigurationService().getProperty("dspace.url");
+                DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.url");
         
         // Prepare content negotiation
         int requestedMimeType = Negotiator.negotiate(request.getHeader(ACCEPT_HEADER_NAME));
