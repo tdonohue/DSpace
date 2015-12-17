@@ -25,7 +25,6 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.BitstreamService;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
@@ -37,7 +36,7 @@ import edu.sdsc.grid.io.local.LocalFile;
 import edu.sdsc.grid.io.srb.SRBAccount;
 import edu.sdsc.grid.io.srb.SRBFile;
 import edu.sdsc.grid.io.srb.SRBFileSystem;
-import org.springframework.beans.factory.InitializingBean;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -68,7 +67,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Peter Breton, Robert Tansley, David Little, Nathan Sarr
  * @version $Revision$
  */
-public class BitstreamStorageServiceImpl implements BitstreamStorageService, InitializingBean
+public class BitstreamStorageServiceImpl implements BitstreamStorageService
 {
     /** log4j log */
     private static Logger log = Logger.getLogger(BitstreamStorageServiceImpl.class);
@@ -77,6 +76,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
     protected ChecksumHistoryService checksumHistoryService;
+    @Autowired(required = true)
+    protected ConfigurationService configurationService;
 
 	/**
 	 * The asset store locations. The information for each GeneralFile in the
@@ -119,55 +120,59 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 	 */
 	protected final String REGISTERED_FLAG = "-R";
 
-    /* Read in the asset stores from the config. */
-    @Override
-    public void afterPropertiesSet() {
+    /**
+     * Initialize the bean (after dependency injection has already taken place).
+     * Ensures the configurationService is injected, so that we can read the
+     * asset stores from the configuration.
+     * Called by "init-method" in Spring config.
+     */
+    public void init() {
         List<Object> stores = new ArrayList<Object>();
 
 		// 'assetstore.dir' is always store number 0
-		String sAssetstoreDir = ConfigurationManager
+		String sAssetstoreDir = configurationService
 				.getProperty("assetstore.dir");
  
 		// see if conventional assetstore or srb
 		if (sAssetstoreDir != null) {
 			stores.add(sAssetstoreDir); // conventional (non-srb)
-		} else if (ConfigurationManager.getProperty("srb.host") != null) {
+		} else if (configurationService.getProperty("srb.host") != null) {
 			stores.add(new SRBAccount( // srb
-					ConfigurationManager.getProperty("srb.host"),
-					ConfigurationManager.getIntProperty("srb.port"),
-					ConfigurationManager.getProperty("srb.username"),
-					ConfigurationManager.getProperty("srb.password"),
-					ConfigurationManager.getProperty("srb.homedirectory"),
-					ConfigurationManager.getProperty("srb.mdasdomainname"),
-					ConfigurationManager
+					configurationService.getProperty("srb.host"),
+					configurationService.getIntProperty("srb.port"),
+					configurationService.getProperty("srb.username"),
+					configurationService.getProperty("srb.password"),
+					configurationService.getProperty("srb.homedirectory"),
+					configurationService.getProperty("srb.mdasdomainname"),
+					configurationService
 							.getProperty("srb.defaultstorageresource"),
-					ConfigurationManager.getProperty("srb.mcatzone")));
+					configurationService.getProperty("srb.mcatzone")));
 		} else {
 			log.error("No default assetstore");
 		}
 
 		// read in assetstores .1, .2, ....
 		for (int i = 1;; i++) { // i == 0 is default above
-			sAssetstoreDir = ConfigurationManager.getProperty("assetstore.dir."
+			sAssetstoreDir = configurationService.getProperty("assetstore.dir."
 					+ i);
 
 			// see if 'i' conventional assetstore or srb
 			if (sAssetstoreDir != null) { 		// conventional (non-srb)
 				stores.add(sAssetstoreDir);
-			} else if (ConfigurationManager.getProperty("srb.host." + i)
+			} else if (configurationService.getProperty("srb.host." + i)
 					!= null) { // srb
 				stores.add(new SRBAccount(
-						ConfigurationManager.getProperty("srb.host." + i),
-						ConfigurationManager.getIntProperty("srb.port." + i),
-						ConfigurationManager.getProperty("srb.username." + i),
-						ConfigurationManager.getProperty("srb.password." + i),
-						ConfigurationManager
+						configurationService.getProperty("srb.host." + i),
+						configurationService.getIntProperty("srb.port." + i),
+						configurationService.getProperty("srb.username." + i),
+						configurationService.getProperty("srb.password." + i),
+						configurationService
 								.getProperty("srb.homedirectory." + i),
-						ConfigurationManager
+						configurationService
 								.getProperty("srb.mdasdomainname." + i),
-						ConfigurationManager
+						configurationService
 								.getProperty("srb.defaultstorageresource." + i),
-						ConfigurationManager.getProperty("srb.mcatzone." + i)));
+						configurationService.getProperty("srb.mcatzone." + i)));
 			} else {
 				break; // must be at the end of the assetstores
 			}
@@ -200,10 +205,10 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 				}
 				String sSRBAssetstore = null;
 				if (i == 0) { // the zero (default) assetstore has no suffix
-					sSRBAssetstore = ConfigurationManager
+					sSRBAssetstore = configurationService
 							.getProperty("srb.parentdir");
 				} else {
-					sSRBAssetstore = ConfigurationManager
+					sSRBAssetstore = configurationService
 							.getProperty("srb.parentdir." + i);
 				}
 				if (sSRBAssetstore == null) {
@@ -217,7 +222,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 		}
 
         // Read asset store to put new files in. Default is 0.
-        incoming = ConfigurationManager.getIntProperty("assetstore.incoming");
+        incoming = configurationService.getIntProperty("assetstore.incoming");
     }
 
     @Override
