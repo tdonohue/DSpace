@@ -16,7 +16,8 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.DiscoverableEndpointsService;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
@@ -63,7 +64,7 @@ import org.springframework.stereotype.Component;
 public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskRest, Integer>
                                        implements InitializingBean {
 
-    private static final Logger log = Logger.getLogger(ClaimedTaskRestRepository.class);
+    private static final Logger log = LogManager.getLogger(ClaimedTaskRestRepository.class);
 
     @Autowired
     ItemService itemService;
@@ -173,7 +174,7 @@ public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskR
     /**
      * This method delete only the claimed task. The workflow engine will return it to the pool if there are not
      * enough other claimed tasks for the same workflowitem.
-     * 
+     *
      */
     @PreAuthorize("hasPermission(#id, 'CLAIMEDTASK', 'DELETE')")
     protected void delete(Context context, Integer id) {

@@ -43,7 +43,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.PaginationException;
 import org.dspace.app.rest.exception.RepositoryNotFoundException;
@@ -99,7 +100,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Component
 public class Utils {
 
-    private static final Logger log = Logger.getLogger(Utils.class);
+    private static final Logger log = LogManager.getLogger(Utils.class);
 
     /**
      * The default page size, if unspecified in the request.

@@ -21,7 +21,8 @@ import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
@@ -41,7 +42,7 @@ public class MetadataStep extends AbstractProcessingStep {
     /**
      * log4j logger
      */
-    private static Logger log = Logger.getLogger(MetadataStep.class);
+    private static Logger log = LogManager.getLogger(MetadataStep.class);
 
     protected List<MetadataListener> listeners = DSpaceServicesFactory.getInstance().getServiceManager()
                                                                       .getServicesByType(MetadataListener.class);

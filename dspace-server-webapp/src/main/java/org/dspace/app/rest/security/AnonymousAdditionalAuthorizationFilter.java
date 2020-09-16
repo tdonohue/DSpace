@@ -15,7 +15,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authenticate.service.AuthenticationService;
 import org.dspace.core.Context;
@@ -34,7 +35,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
  */
 public class AnonymousAdditionalAuthorizationFilter extends BasicAuthenticationFilter {
 
-    private static final Logger log = Logger.getLogger(AnonymousAdditionalAuthorizationFilter.class);
+    private static final Logger log = LogManager.getLogger(AnonymousAdditionalAuthorizationFilter.class);
 
     private AuthenticationService authenticationService;
 

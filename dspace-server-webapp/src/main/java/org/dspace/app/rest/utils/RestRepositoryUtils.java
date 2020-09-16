@@ -12,7 +12,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.MissingParameterException;
@@ -49,7 +50,7 @@ public class RestRepositoryUtils {
     private static final String NAME_NOT_FOUND = "Unable to detect parameter names for query method %s! Use @Param or" +
         " compile with -parameters on JDK 8.";
 
-    private static final Logger log = Logger.getLogger(RestRepositoryUtils.class);
+    private static final Logger log = LogManager.getLogger(RestRepositoryUtils.class);
 
     @Autowired(required = true)
     @Qualifier(value = "mvcConversionService")
