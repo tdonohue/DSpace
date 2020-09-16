@@ -278,6 +278,10 @@ just adding new jar in the classloader</description>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.bouncycastle</groupId>
                     <artifactId>bcpkix-jdk15on</artifactId>
                 </exclusion>
