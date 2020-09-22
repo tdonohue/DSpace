@@ -2,14 +2,11 @@
 # Builds: https://travis-ci.com/github/DSpace/DSpace
 # Travis configuration guide/validation: https://config.travis-ci.com/explore
 language: java
-# TODO: Upgrade to Bionic
-dist: trusty
+dist: bionic
 os: linux
 
-jdk:
-  # DS-3384 Oracle JDK has DocLint enabled by default.
-  # Let's use this to catch any newly introduced DocLint issues.
-  - oraclejdk11
+# Java 11 (NOTE: OracleJDK no longer well supported as Oracle requires account signup to download)
+jdk: openjdk11
 
 # Define global environment variables (shared across all jobs)
 env:
