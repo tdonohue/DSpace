@@ -43,12 +43,11 @@ public class AbstractBuilderCleanupUtil {
             = new LinkedHashMap<>();
 
     /**
-     * Constructor that will initialize the Map with a predefined order for deletion
+     * Constructor that will initialize the Map with a predefined order for deletion.
+     * NOTE: Deletion occurs from top to bottom in the below list.
      */
     public AbstractBuilderCleanupUtil() {
         map.put(RelationshipBuilder.class.getName(), new LinkedList<>());
-        map.put(RelationshipTypeBuilder.class.getName(), new LinkedList<>());
-        map.put(EntityTypeBuilder.class.getName(), new LinkedList<>());
         map.put(PoolTaskBuilder.class.getName(), new LinkedList<>());
         map.put(WorkflowItemBuilder.class.getName(), new LinkedList<>());
         map.put(WorkspaceItemBuilder.class.getName(), new LinkedList<>());
@@ -60,6 +59,8 @@ public class AbstractBuilderCleanupUtil {
         map.put(EPersonBuilder.class.getName(), new LinkedList<>());
         map.put(GroupBuilder.class.getName(), new LinkedList<>());
         map.put(ItemBuilder.class.getName(), new LinkedList<>());
+        map.put(RelationshipTypeBuilder.class.getName(), new LinkedList<>());
+        map.put(EntityTypeBuilder.class.getName(), new LinkedList<>());
         map.put(MetadataFieldBuilder.class.getName(), new LinkedList<>());
         map.put(MetadataSchemaBuilder.class.getName(), new LinkedList<>());
         map.put(SiteBuilder.class.getName(), new LinkedList<>());
