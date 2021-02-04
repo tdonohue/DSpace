@@ -254,6 +254,22 @@
             </exclusion>
          </exclusions>
       </dependency>
+        <!-- Solr Core is needed for Integration Tests (to run a MockSolrServer).
+             The following Solr / Lucene dependencies also support integration
+             tests. -->
+        <dependency>
+            <groupId>org.apache.solr</groupId>
+            <artifactId>solr-core</artifactId>
+            <scope>test</scope>
+            <version>${solr.client.version}</version>
+            <exclusions>
+                <!-- Newer version brought in by opencsv -->
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-text</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>

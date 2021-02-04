@@ -56,6 +56,8 @@
         <!-- Used by (now obsolete) 'dspace-rest' WAR -->
         <jersey.version>2.30.1</jersey.version>
 
+        <tika.version>1.24.1</tika.version>
+
         <!--=== MAVEN SETTINGS ===-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -1069,14 +1071,14 @@
 
             <!-- DSpace third Party Dependencies -->
 
-            <!-- solr-cell and axiom-api disagree on versions -->
+            <!-- Tika and axiom-api disagree on versions -->
             <dependency>
                 <groupId>org.apache.james</groupId>
                 <artifactId>apache-mime4j-core</artifactId>
                 <version>0.8.3</version>
             </dependency>
 
-            <!-- solr-core, solr-cell disagree with nimbus-jose-jwt -->
+            <!-- solr-core disagrees with nimbus-jose-jwt -->
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
@@ -1203,20 +1205,32 @@
             </dependency>
 
             <dependency>
-                <groupId>org.apache.solr</groupId>
-                <artifactId>solr-cell</artifactId>
-                <version>${solr.client.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.lucene</groupId>
                 <artifactId>lucene-core</artifactId>
                 <version>${solr.client.version}</version>
             </dependency>
-            <!-- Used for full-text indexing with Solr. Should be synced with version of Tika in solr-cell -->
+            <!-- Used for full-text indexing with Solr.  -->
             <dependency>
                 <groupId>org.apache.tika</groupId>
                 <artifactId>tika-core</artifactId>
-                <version>1.24.1</version>
+                <version>${tika.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers</artifactId>
+                <version>${tika.version}</version>
+            </dependency>
+            <!-- Used by Tika -->
+            <dependency>
+                <groupId>javax.xml.soap</groupId>
+                <artifactId>javax.xml.soap-api</artifactId>
+                <version>1.4.0</version>
+            </dependency>
+            <!-- Version skew between xoai and Tika -->
+            <dependency>
+                <groupId>org.jvnet.staxex</groupId>
+                <artifactId>stax-ex</artifactId>
+                <version>1.8</version>
             </dependency>
             <!-- Reminder: Keep icu4j (in Parent POM) synced with version used by lucene-analyzers-icu below,
              otherwise ICUFoldingFilterFactory may throw errors in tests.  -->
@@ -1255,7 +1269,7 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
                     </exclusion>
-                    <!-- Newer version brought in by solr-cell -->
+                    <!-- Newer version brought in by Tika -->
                     <exclusion>
                         <groupId>org.apache.commons</groupId>
                         <artifactId>commons-csv</artifactId>
@@ -1292,6 +1306,16 @@
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-server</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-io</artifactId>
+                <version>${jetty.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-util</artifactId>
                 <version>${jetty.version}</version>
             </dependency>
             <dependency>
@@ -1464,13 +1488,6 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi-version}</version>
-                <exclusions>
-                    <!-- Newer version brought in by solr-cell -->
-                    <exclusion>
-                        <groupId>com.github.virtuald</groupId>
-                        <artifactId>curvesapi</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.poi</groupId>
