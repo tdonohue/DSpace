@@ -352,7 +352,7 @@ public class ItemImportCLITool {
                         }
                     } else if (collections[i] != null) {
                         // not a handle, try and treat it as an integer collection database ID
-                        mycollections.set(i, collectionService.find(c, UUID.fromString(collections[i])));
+                        mycollections.add(collectionService.find(c, UUID.fromString(collections[i])));
                     }
 
                     // was the collection valid?
