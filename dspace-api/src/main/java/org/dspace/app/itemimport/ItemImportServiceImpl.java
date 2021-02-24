@@ -160,9 +160,6 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
     @Autowired(required = true)
     protected ConfigurationService configurationService;
 
-    protected final String tempWorkDir
-            = configurationService.getProperty("org.dspace.app.batchitemimport.work.dir");
-
     protected boolean isTest = false;
     protected boolean isResume = false;
     protected boolean useWorkflow = false;
@@ -172,6 +169,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
     @Override
     public void afterPropertiesSet() throws Exception {
         //Ensure tempWorkDir exists
+        String tempWorkDir = configurationService.getProperty("org.dspace.app.batchitemimport.work.dir");
         File tempWorkDirFile = new File(tempWorkDir);
         if (!tempWorkDirFile.exists()) {
             boolean success = tempWorkDirFile.mkdir();
@@ -1479,7 +1477,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
 
         String destinationDir = destDir;
         if (destinationDir == null) {
-            destinationDir = tempWorkDir;
+            destinationDir = getTempWorkDir();
         }
 
         File tempdir = new File(destinationDir);
@@ -1875,7 +1873,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
 
     @Override
     public String getTempWorkDir() {
-        return tempWorkDir;
+        return configurationService.getProperty("org.dspace.app.batchitemimport.work.dir");
     }
 
     @Override
@@ -1899,6 +1897,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
 
     @Override
     public void cleanupZipTemp() {
+        String tempWorkDir = getTempWorkDir();
         System.out.println("Deleting temporary zip directory: " + tempWorkDir);
         log.debug("Deleting temporary zip directory: " + tempWorkDir);
         deleteDirectory(new File(tempWorkDir));
