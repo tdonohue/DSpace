@@ -91,7 +91,9 @@ public class GroupRestRepositoryIT extends AbstractControllerIntegrationTest {
     Collection collection;
 
     @Before
-    public void setup() {
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context).withName("test").build();
         collection = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();

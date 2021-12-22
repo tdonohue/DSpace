@@ -51,8 +51,9 @@ public class MetadataDeletionIT extends AbstractIntegrationTestWithDatabase {
     private ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     @Before
-    public void setup() {
-
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
         context.turnOffAuthorisationSystem();
 
         Community community = CommunityBuilder.createCommunity(context).build();
