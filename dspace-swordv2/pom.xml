@@ -69,11 +69,10 @@
             <type>jar</type>
             <classifier>classes</classifier>
             <exclusions>
-                <!-- Abdera is unmaintained/obsolete. But, 'fom-impl' is a new Abdera compatible library for Axiom.
-                     Therefore, we are using 'fom-impl' instead (see below) -->
+                <!-- Newer version pulled in by dspace-api -->
                 <exclusion>
-                    <groupId>org.apache.abdera</groupId>
-                    <artifactId>abdera-client</artifactId>
+                    <groupId>org.apache.ws.commons.axiom</groupId>
+                    <artifactId>axiom-impl</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -92,6 +91,17 @@
                 <exclusion>
                     <groupId>com.hp.hpl.jena</groupId>
                     <artifactId>jena</artifactId>
+                </exclusion>
+                <!-- Exclude Geronimo as it is NOT necessary when using javax.activation (which we use)
+                     See: https://ws.apache.org/axiom/userguide/ch04.html#d0e732 -->
+                <exclusion>
+                    <groupId>org.apache.geronimo.specs</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <!-- Exclude Woodstox, as later version provided by Solr dependencies -->
+                <exclusion>
+                    <groupId>org.codehaus.woodstox</groupId>
+                    <artifactId>woodstox-asl</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -127,28 +137,6 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-web</artifactId>
-        </dependency>
-
-        <!-- Replacement for Abdera (required by sword2-server dependency). Abdera is no longer maintained
-             (https://abdera.apache.org/). But Axiom FOM is backwards compatible with Abdera.
-             See https://ws.apache.org/axiom/implementations/fom-impl/index.html -->
-        <dependency>
-            <groupId>org.apache.ws.commons.axiom</groupId>
-            <artifactId>fom-impl</artifactId>
-            <version>${axiom.version}</version>
-            <exclusions>
-                <!-- Exclude Geronimo as it is NOT necessary when using javax.activation (which we use)
-                     See: https://ws.apache.org/axiom/userguide/ch04.html#d0e732 -->
-                <exclusion>
-                    <groupId>org.apache.geronimo.specs</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <!-- Exclude Woodstox, as later version provided by Solr dependencies -->
-                <exclusion>
-                    <groupId>org.codehaus.woodstox</groupId>
-                    <artifactId>woodstox-core-asl</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 
