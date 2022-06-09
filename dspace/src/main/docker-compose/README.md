@@ -18,10 +18,14 @@
   - Docker compose file that will run an AIP ingest into DSpace 7.
 - db.entities.yml
   - Docker compose file that pre-populate a database instance using a SQL dump.  The default dataset is the configurable entities test dataset.
-- local.cfg
-  - Sets the environment used across containers run with docker-compose
 - docker-compose-angular.yml
   - Docker compose file that will start a published DSpace angular container that interacts with the branch.
+- docker-compose-https.yml
+  - Docker compose file that will run both the UI and REST API via HTTPS on localhost (on https://localhost/ and https://localhost/server/).
+- docker-compose-iiif.yml
+  - Docker compose file that runs a Cantaloupe IIIF image server in Docker, for testing IIIF integration.
+- docker-compose-oidc.yml
+  - Docker compose file that runs Keycloak in Docker, for testing OIDC (OpenID Connect) authentication integration.
 - docker-compose-shibboleth.yml
   - Docker compose file that will start a *test/demo* Shibboleth SP container (in Apache) that proxies requests to the DSpace container
   - ONLY useful for testing/development. NOT production ready.
@@ -46,12 +50,43 @@ Default is Java 11, but other LTS releases (e.g. 17) are also supported.
 ```
 docker-compose -p d7 up -d
 ```
+REST API will be available at http://localhost:8080/server/
 
 ## Run DSpace 7 REST and Angular from your branch
 
 ```
 docker-compose -p d7 -f docker-compose.yml -f dspace/src/main/docker-compose/docker-compose-angular.yml up -d
 ```
+* UI will be available at http://localhost:4000/
+* REST API will be available at http://localhost:8080/server/
+
+## Run DSpace 7 REST and Angular on localhost via HTTPS (https://dspace-dev.local)
+
+First, because the `dspace-https` image uses a local URL, you will need to add it to your "hosts" file.
+* On Linux or Mac OS, add this to your `/etc/hosts` file:
+  ```
+  127.0.0.1 dspace-dev.local
+  ```
+* On Windows 10, add this to your `C:\Windows\System32\Drivers\etc\hosts` file:
+  ```
+  127.0.0.1 dspace-dev.local
+  ```
+
+Then, if you have not done so, build these images locally:
+```
+docker-compose -p d7 -f docker-compose.yml -f dspace/src/main/docker-compose/docker-compose-angular.yml -f dspace/src/main/docker-compose/docker-compose-https.yml build
+```
+
+Then start the containers:
+```
+# This starts 3 containers: dspace (backend), dspace-angular, dspace-https
+docker-compose -p d7 -f docker-compose.yml -f dspace/src/main/docker-compose/docker-compose-angular.yml -f dspace/src/main/docker-compose/docker-compose-https.yml up -d
+```
+* UI will be available at https://dspace-dev.local
+* REST API will be available at https://dspace-dev.local/server/
+* NOTE: Your browser will likely warn you that these URLs are "insecure" or "unsafe".
+  This is because a self-signed SSL certificate is generated in Docker and used for HTTPS.
+  You can either ignore these browser warnings, or you can install that certificate locally among your trusted certs.
 
 ## Run DSpace 7 REST with a IIIF Image Server from your branch
 *Only useful for testing IIIF support in a development environment*
@@ -62,7 +97,13 @@ which can be used when IIIF support is enabled in DSpace (`iiif.enabled=true`).
 
 ```
 docker-compose -p d7 -f docker-compose.yml -f dspace/src/main/docker-compose/docker-compose-iiif.yml up -d
+
+# Optionally, you can also start dspace-angular by adding it to the '-f' list like:
+docker-compose -p d7 -f docker-compose.yml -f dspace/src/main/docker-compose/docker-compose-angular.yml -f dspace/src/main/docker-compose/docker-compose-iiif.yml up -d
 ```
+The Cantaloupe image server will be available at http://localhost:8182/, which means the default settings
+for `iiif.image.server` will work with this container. You will however need to ensure `iiif.enabled=true` and
+one or more Items have IIIF enabled (the metadata field `dspace.iiif.enabled` must be set to "true")
 
 ## Run DSpace 7 REST and Shibboleth SP (in Apache) from your branch
 
@@ -79,7 +120,7 @@ The remainder of these instructions assume you are using ngrok (though other pro
    ./ngrok http 443
    ```
 
-2. Then, update `local.cfg` in this directory to use that ngrok URL & configure Shibboleth:
+2. Then, update your `local.cfg` (if you don't have one create it in `[src]/dspace/config/local.cfg`) to use that ngrok URL & configure Shibboleth:
    ```
    # NOTE: dspace.server.url MUST be available externally to use with https://samltest.id/.
    # In this example we are assuming you are using ngrok.
