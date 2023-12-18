@@ -29,41 +29,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- SWORDv2 Java implementation -->
-        <dependency>
-            <groupId>org.swordapp</groupId>
-            <artifactId>sword2-server</artifactId>
-            <version>1.0</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
-            <exclusions>
-                <!-- Abdera is unmaintained/obsolete. But, 'fom-impl' is a new Abdera compatible library for Axiom.
-                     Therefore, we are using 'fom-impl' instead (see below) -->
-                <exclusion>
-                    <groupId>org.apache.abdera</groupId>
-                    <artifactId>abdera-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <!-- Newer version of log4j provided below -->
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <!-- Exclude an old version of Jena in favor of new Apache Jena, which is pulled in by dspace-parent -->
-                <exclusion>
-                    <groupId>com.hp.hpl.jena</groupId>
-                    <artifactId>jena</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <!-- DSpace Java API -->
         <dependency>
             <groupId>org.dspace</groupId>
