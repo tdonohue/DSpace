@@ -1,59 +1,45 @@
 package org.swordapp.server;
 
-import org.apache.log4j.Logger;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-public class StatementAPI extends SwordAPIEndpoint
-{
-    private static Logger log = Logger.getLogger(CollectionAPI.class);
-
+public class StatementAPI extends SwordAPIEndpoint {
     private StatementManager sm;
 
-    public StatementAPI(StatementManager sm, SwordConfiguration config)
-    {
+    public StatementAPI(StatementManager sm, SwordConfiguration config) {
         super(config);
         this.sm = sm;
     }
 
     public void get(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException
-    {
+        throws ServletException, IOException {
         // let the superclass prepare the request/response objects
         super.get(req, resp);
 
         // do the initial authentication
         AuthCredentials auth = null;
-        try
-        {
+        try {
             auth = this.getAuthCredentials(req);
-        }
-        catch (SwordAuthException e)
-        {
-			if (e.isRetry())
-			{
-				String s = "Basic realm=\"SWORD2\"";
-				resp.setHeader("WWW-Authenticate", s);
-				resp.setStatus(401);
-				return;
-			}
-			else
-			{
-            	resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
-            	return;
-			}
+        } catch (SwordAuthException e) {
+            if (e.isRetry()) {
+                String s = "Basic realm=\"SWORD2\"";
+                resp.setHeader("WWW-Authenticate", s);
+                resp.setStatus(401);
+                return;
+            } else {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+                return;
+            }
         }
 
-        try
-        {
+        try {
             // there may be some content negotiation going on
             Map<String, String> accept = this.getAcceptHeaders(req);
             String uri = this.getFullUrl(req);
@@ -81,24 +67,16 @@ public class StatementAPI extends SwordAPIEndpoint
             resp.getWriter().append(writer.toString());
             resp.getWriter().flush();
 
-        }
-        catch (SwordServerException e)
-        {
+        } catch (SwordServerException e) {
             throw new ServletException(e);
-        }
-        catch (SwordError se)
-        {
+        } catch (SwordError se) {
             this.swordError(req, resp, se);
-        }
-        catch (NoSuchAlgorithmException e)
-        {
+        } catch (NoSuchAlgorithmException e) {
             throw new ServletException(e);
+        } catch (SwordAuthException e) {
+            // authentication actually failed at the server end; not a SwordError, but
+            // need to throw a 403 Forbidden
+            resp.sendError(403);
         }
-		catch (SwordAuthException e)
-		{
-			// authentication actually failed at the server end; not a SwordError, but
-			// need to throw a 403 Forbidden
-			resp.sendError(403);
-		}
     }
 }

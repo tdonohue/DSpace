@@ -1,7 +1,6 @@
 package org.swordapp.server;
 
-public interface SwordConfiguration
-{
+public interface SwordConfiguration {
     boolean returnDepositReceipt();
 
     boolean returnStackTraceInError();
@@ -14,13 +13,13 @@ public interface SwordConfiguration
 
     String administratorEmail();
 
-	String getAuthType();
+    String getAuthType();
 
-	boolean storeAndCheckBinary();
+    boolean storeAndCheckBinary();
 
-	String getTempDirectory();
+    String getTempDirectory();
 
-	int getMaxUploadSize();
+    int getMaxUploadSize();
 
     String getAlternateUrl();
 

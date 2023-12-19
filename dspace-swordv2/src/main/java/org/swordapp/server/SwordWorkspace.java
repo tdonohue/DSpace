@@ -5,36 +5,30 @@ import org.apache.abdera.model.Collection;
 import org.apache.abdera.model.Text;
 import org.apache.abdera.model.Workspace;
 
-public class SwordWorkspace
-{
+public class SwordWorkspace {
     private Workspace workspace;
 
-    public SwordWorkspace()
-    {
+    public SwordWorkspace() {
         Abdera abdera = new Abdera();
         this.workspace = abdera.getFactory().newWorkspace();
     }
 
-    public Workspace getWrappedWorkspace()
-    {
+    public Workspace getWrappedWorkspace() {
         return workspace;
     }
 
-    public Workspace getAbderaWorkspace()
-    {
+    public Workspace getAbderaWorkspace() {
         // at the moment, this doesn't need to clone anything
         return workspace;
     }
 
-    public void addCollection(SwordCollection collection)
-    {
+    public void addCollection(SwordCollection collection) {
         // FIXME: or should collections be managed internally until getAbderaWorkspace is called
         Collection abderaCollection = collection.getAbderaCollection();
         this.workspace.addCollection(abderaCollection);
     }
 
-	public Text setTitle(String title)
-	{
-		return this.workspace.setTitle(title);
-	}
+    public Text setTitle(String title) {
+        return this.workspace.setTitle(title);
+    }
 }

@@ -2,8 +2,10 @@ package org.swordapp.server;
 
 import javax.xml.namespace.QName;
 
-public class UriRegistry
-{
+public class UriRegistry {
+    // Utility classes should not have a public constructor
+    private UriRegistry() { }
+
     // Namespace prefixes
     public static String SWORD_PREFIX = "sword";
     public static String ORE_PREFIX = "ore";
@@ -29,7 +31,7 @@ public class UriRegistry
     public static QName SWORD_PACKAGING = new QName(SWORD_TERMS_NAMESPACE, "packaging");
     public static QName SWORD_VERBOSE_DESCRIPTION = new QName(SWORD_TERMS_NAMESPACE, "verboseDescription");
     public static QName APP_ACCEPT = new QName(APP_NAMESPACE, "accept");
-	public static QName DC_ABSTRACT = new QName(DC_NAMESPACE, "abstract");
+    public static QName DC_ABSTRACT = new QName(DC_NAMESPACE, "abstract");
 
     // URIs for the statement
     public static String SWORD_DEPOSITED_BY = SWORD_TERMS_NAMESPACE + "depositedBy";
@@ -56,5 +58,5 @@ public class UriRegistry
     public static String ERROR_TARGET_OWNER_UNKNOWN = "http://purl.org/net/sword/error/TargetOwnerUnknown";
     public static String ERROR_MEDIATION_NOT_ALLOWED = "http://purl.org/net/sword/error/MediationNotAllowed";
     public static String ERROR_METHOD_NOT_ALLOWED = "http://purl.org/net/sword/error/MethodNotAllowed";
-	public static String ERROR_MAX_UPLOAD_SIZE_EXCEEDED = "http://purl.org/net/sword/error/MaxUploadSizeExceeded";
+    public static String ERROR_MAX_UPLOAD_SIZE_EXCEEDED = "http://purl.org/net/sword/error/MaxUploadSizeExceeded";
 }

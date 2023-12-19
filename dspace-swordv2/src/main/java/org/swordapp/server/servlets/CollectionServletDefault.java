@@ -1,27 +1,22 @@
 package org.swordapp.server.servlets;
 
-import org.apache.log4j.Logger;
-import org.swordapp.server.CollectionAPI;
-import org.swordapp.server.CollectionDepositManager;
-import org.swordapp.server.CollectionListManager;
-import org.swordapp.server.SwordConfiguration;
-
+import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-public class CollectionServletDefault extends SwordServlet
-{
-    private static Logger log = Logger.getLogger(CollectionServletDefault.class);
+import org.swordapp.server.CollectionAPI;
+import org.swordapp.server.CollectionDepositManager;
+import org.swordapp.server.CollectionListManager;
+
+public class CollectionServletDefault extends SwordServlet {
 
     protected CollectionListManager clm = null;
     protected CollectionDepositManager cdm;
     protected CollectionAPI api;
 
-    public void init() throws ServletException
-    {
-		super.init();
+    public void init() throws ServletException {
+        super.init();
 
         // load the collection list manager implementation
         Object possibleClm = this.loadImplClass("collection-list-impl", true); // allow null
@@ -36,15 +31,13 @@ public class CollectionServletDefault extends SwordServlet
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException
-    {
+        throws ServletException, IOException {
         this.api.get(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException
-    {
+        throws ServletException, IOException {
         this.api.post(req, resp);
     }
 }

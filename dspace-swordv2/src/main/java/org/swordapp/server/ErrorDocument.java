@@ -1,10 +1,5 @@
 package org.swordapp.server;
 
-import nu.xom.Attribute;
-import nu.xom.Document;
-import nu.xom.Element;
-import nu.xom.Serializer;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -14,36 +9,35 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ErrorDocument
-{
+import nu.xom.Attribute;
+import nu.xom.Document;
+import nu.xom.Element;
+import nu.xom.Serializer;
+
+public class ErrorDocument {
     private String errorUri = null;
     private Map<String, Integer> errorCodes = new HashMap<String, Integer>();
     private String summary = null;
     private String verboseDescription = null;
     private int status;
 
-    public ErrorDocument(String errorUri)
-    {
+    public ErrorDocument(String errorUri) {
         this(errorUri, -1, null, null);
     }
 
-    public ErrorDocument(String errorUri, int status)
-    {
+    public ErrorDocument(String errorUri, int status) {
         this(errorUri, status, null, null);
     }
 
-    public ErrorDocument(String errorUri, String verboseDescription)
-    {
+    public ErrorDocument(String errorUri, String verboseDescription) {
         this(errorUri, -1, null, verboseDescription);
     }
 
-    public ErrorDocument(String errorUri, int status, String verboseDescription)
-    {
+    public ErrorDocument(String errorUri, int status, String verboseDescription) {
         this(errorUri, status, null, verboseDescription);
     }
 
-    public ErrorDocument(String errorUri, int status, String summary, String verboseDescription)
-    {
+    public ErrorDocument(String errorUri, int status, String summary, String verboseDescription) {
         // set up the error codes mapping
         this.errorCodes.put(UriRegistry.ERROR_BAD_REQUEST, 400); // bad request
         this.errorCodes.put(UriRegistry.ERROR_CHECKSUM_MISMATCH, 412); // precondition failed
@@ -51,7 +45,7 @@ public class ErrorDocument
         this.errorCodes.put(UriRegistry.ERROR_MEDIATION_NOT_ALLOWED, 412); // precondition failed
         this.errorCodes.put(UriRegistry.ERROR_METHOD_NOT_ALLOWED, 405); // method not allowed
         this.errorCodes.put(UriRegistry.ERROR_TARGET_OWNER_UNKNOWN, 403); // forbidden
-		this.errorCodes.put(UriRegistry.ERROR_MAX_UPLOAD_SIZE_EXCEEDED, 413); // forbidden
+        this.errorCodes.put(UriRegistry.ERROR_MAX_UPLOAD_SIZE_EXCEEDED, 413); // forbidden
 
         this.errorUri = errorUri;
         this.summary = summary;
@@ -59,26 +53,20 @@ public class ErrorDocument
         this.status = status;
     }
 
-    public int getStatus()
-    {
-        if (this.status > -1)
-        {
+    public int getStatus() {
+        if (this.status > -1) {
             return this.status;
         }
-        
-        if (errorUri != null && this.errorCodes.containsKey(errorUri))
-        {
+
+        if (errorUri != null && this.errorCodes.containsKey(errorUri)) {
             return this.errorCodes.get(errorUri);
-        }
-        else
-        {
+        } else {
             return 400; // bad request
         }
     }
 
     public void writeTo(Writer out, SwordConfiguration config)
-            throws IOException, SwordServerException
-    {
+        throws IOException, SwordServerException {
         // do the XML serialisation
         Element error = new Element("sword:error", UriRegistry.SWORD_TERMS_NAMESPACE);
         error.addAttribute(new Attribute("href", this.errorUri));
@@ -92,8 +80,7 @@ public class ErrorDocument
         Element generator = new Element("atom:generator", UriRegistry.ATOM_NAMESPACE);
         generator.addAttribute(new Attribute("uri", config.generator()));
         generator.addAttribute(new Attribute("version", config.generatorVersion()));
-        if (config.administratorEmail() != null)
-        {
+        if (config.administratorEmail() != null) {
             generator.appendChild(config.administratorEmail());
         }
         Element treatment = new Element("sword:treatment", UriRegistry.SWORD_TERMS_NAMESPACE);
@@ -105,15 +92,13 @@ public class ErrorDocument
         error.appendChild(treatment);
 
         // now add the operational bits
-        if (this.summary != null)
-        {
+        if (this.summary != null) {
             Element summary = new Element("atom:summary", UriRegistry.ATOM_NAMESPACE);
             summary.appendChild(this.summary);
             error.appendChild(summary);
         }
 
-        if (this.verboseDescription != null)
-        {
+        if (this.verboseDescription != null) {
             Element vd = new Element("sword:verboseDescription", UriRegistry.SWORD_TERMS_NAMESPACE);
             vd.appendChild(this.verboseDescription);
             error.appendChild(vd);
@@ -121,29 +106,24 @@ public class ErrorDocument
 
         String alternate = config.getAlternateUrl();
         String altContentType = config.getAlternateUrlContentType();
-        if (alternate != null && !"".equals(alternate))
-        {
+        if (alternate != null && !"".equals(alternate)) {
             Element altLink = new Element("atom:link", UriRegistry.ATOM_NAMESPACE);
             altLink.addAttribute(new Attribute("rel", "alternate"));
-            if (altContentType != null && !"".equals(altContentType))
-            {
+            if (altContentType != null && !"".equals(altContentType)) {
                 altLink.addAttribute(new Attribute("type", altContentType));
             }
             altLink.addAttribute(new Attribute("href", alternate));
             error.appendChild(altLink);
         }
 
-        try
-        {
+        try {
             // now get it written out
             Document doc = new Document(error);
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Serializer serializer = new Serializer(baos, "ISO-8859-1");
             serializer.write(doc);
             out.write(baos.toString());
-        }
-        catch (UnsupportedEncodingException e)
-        {
+        } catch (UnsupportedEncodingException e) {
             throw new SwordServerException(e);
         }
     }
