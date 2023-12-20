@@ -8,14 +8,17 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.mail.internet.ContentDisposition;
+import javax.mail.internet.ParseException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 
 import org.apache.abdera.Abdera;
 import org.apache.abdera.model.Document;
@@ -23,12 +26,6 @@ import org.apache.abdera.model.Element;
 import org.apache.abdera.model.Entry;
 import org.apache.abdera.parser.Parser;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.fileupload.FileItemFactory;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.ParameterParser;
-import org.apache.commons.fileupload.disk.DiskFileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -220,35 +217,35 @@ public class SwordAPIEndpoint {
 
     protected void addDepositPropertiesFromMultipart(Deposit deposit, HttpServletRequest req)
         throws ServletException, IOException, SwordError {
-        // Parse the request for files (using the fileupload commons library)
-        List<DiskFileItem> items = this.getPartsFromRequest(req);
-        for (DiskFileItem item : items) {
+        // Parse the request for files
+        Collection<Part> parts = req.getParts();
+        for (final Part part : parts) {
             // find out which part we are looking at
-            String contentDisposition = item.getHeaders().getHeader("Content-Disposition");
+            String contentDisposition = part.getHeader("Content-Disposition");
             String name = this.getContentDispositionValue(contentDisposition, "name");
 
             if ("atom".equals(name)) {
-                InputStream entryPart = item.getInputStream();
+                InputStream entryPart = part.getInputStream();
                 Abdera abdera = new Abdera();
                 Parser parser = abdera.getParser();
                 Document<Entry> entryDoc = parser.parse(entryPart);
                 Entry entry = entryDoc.getRoot();
                 deposit.setEntry(entry);
             } else if ("payload".equals(name)) {
-                String md5 = item.getHeaders().getHeader("Content-MD5");
-                String packaging = item.getHeaders().getHeader("Packaging");
+                String md5 = part.getHeader("Content-MD5");
+                String packaging = part.getHeader("Packaging");
                 String filename = this.getContentDispositionValue(contentDisposition, "filename");
                 if (filename == null || "".equals(filename)) {
                     throw new SwordError(UriRegistry.ERROR_BAD_REQUEST,
                                          "Filename could not be extracted from Content-Disposition");
                 }
-                String ct = item.getContentType();
+                String ct = part.getContentType();
                 String mimeType = "application/octet-stream";
                 if (ct != null) {
                     String[] bits = ct.split(";");
                     mimeType = bits[0].trim();
                 }
-                InputStream mediaPart = item.getInputStream();
+                InputStream mediaPart = part.getInputStream();
 
                 deposit.setFilename(filename);
                 deposit.setInputStream(mediaPart);
@@ -378,32 +375,15 @@ public class SwordAPIEndpoint {
         }
     }
 
-    protected String getContentDispositionValue(String contentDisposition, String key) {
+    protected String getContentDispositionValue(String contentDisposition, String key) throws ServletException {
         if (contentDisposition == null || key == null) {
             return null;
         }
-
-        ParameterParser parameterParser = new ParameterParser();
-        char separator = ';';
-        Map<String, String> parameters = parameterParser.parse(contentDisposition, separator);
-        return parameters.get(key);
-    }
-
-    protected List<DiskFileItem> getPartsFromRequest(HttpServletRequest request)
-        throws ServletException {
         try {
-            // Create a factory for disk-based file items
-            FileItemFactory factory = new DiskFileItemFactory();
-
-            // Create a new file upload handler
-            ServletFileUpload upload = new ServletFileUpload(factory);
-
-            // Parse the request
-            List<DiskFileItem> items = upload.parseRequest(request);
-
-            return items;
-        } catch (FileUploadException e) {
-            throw new ServletException(e);
+            ContentDisposition cd = new ContentDisposition(contentDisposition);
+            return cd.getParameter(key);
+        } catch (ParseException pe) {
+            throw new ServletException(pe);
         }
     }
 
