@@ -22,6 +22,22 @@
         <root.basedir>${basedir}/..</root.basedir>
     </properties>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <!-- Ignore license header requirements on code under org.swordapp.* package -->
+                        <!-- This code was copied from unmaintained SWORDv2 Java Libraries  & has Apache 2.0 license -->
+                        <exclude>src/main/java/org/swordapp/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>javax.servlet</groupId>
