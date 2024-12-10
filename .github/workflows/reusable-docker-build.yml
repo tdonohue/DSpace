@@ -177,7 +177,7 @@ jobs:
 
       # Export the digest of Docker build locally (for non PRs only)
       - name: Export Docker build digest
-        #if: ${{ ! matrix.isPr }}
+        if: ${{ ! matrix.isPr }}
         run: |
             mkdir -p /tmp/digests
             digest="${{ steps.docker_build.outputs.digest }}"
@@ -204,7 +204,7 @@ jobs:
 
       - name: Copy image to DockerHub
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
 
       # If this build is NOT a PR and passed in a REDEPLOY_SANDBOX_URL secret,
@@ -287,6 +287,15 @@ jobs:
           pattern: digests-${{ inputs.build_id }}-*
           merge-multiple: true
 
+      - name: Login to GitHub Container Registry
+        # Only login if not a PR, as PRs only trigger a Docker build and not a push
+        if: ${{ ! matrix.isPr }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_BUILD_REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -304,7 +313,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: ${{ env.IMAGE_TAGS }}
           flavor: ${{ env.TAGS_FLAVOR }}
 
@@ -312,8 +321,8 @@ jobs:
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-          $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+          $(printf '${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
