@@ -59,10 +59,11 @@ env:
   # For a pull request, use the name of the base branch that the PR was created against or "latest" (for main).
   #   e.g. PR against 'main' will use "latest". a PR against 'dspace-7_x' will use 'dspace-7_x'.
   IMAGE_TAGS: |
-    type=raw,value=latest,enable=${{ github.ref_name == github.event.repository.default_branch }}
-    type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
-    type=ref,event=tag
-    type=raw,value=${{ (github.event.pull_request.base.ref == github.event.repository.default_branch && 'latest') || github.event.pull_request.base.ref }},enable=${{ github.event_name == 'pull_request' }}
+    type=raw,value=latest
+  #type=raw,value=latest,enable=${{ github.ref_name == github.event.repository.default_branch }}
+  #type=ref,event=branch,enable=${{ github.ref_name != github.event.repository.default_branch }}
+  #type=ref,event=tag
+  #type=raw,value=${{ (github.event.pull_request.base.ref == github.event.repository.default_branch && 'latest') || github.event.pull_request.base.ref }},enable=${{ github.event_name == 'pull_request' }}
   # Define default tag "flavor" for docker/metadata-action per
   # https://github.com/docker/metadata-action#flavor-input
   # We manage the 'latest' tag ourselves to the 'main' branch (see settings above)
@@ -116,7 +117,7 @@ jobs:
       # https://github.com/docker/login-action
       - name: Login to GitHub Container Registry
         # Only login if not a PR, as PRs only trigger a Docker build and not a push
-        #if: ${{ ! matrix.isPr }}
+        if: ${{ ! matrix.isPr }}
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_BUILD_REGISTRY }}
@@ -156,7 +157,7 @@ jobs:
       # https://github.com/docker/build-push-action
       - name: Build and push image to GitHub Container Registry
         # Only build & push if not a PR
-        #if: ${{ ! matrix.isPr }}
+        if: ${{ ! matrix.isPr }}
         id: docker_build
         uses: docker/build-push-action@v5
         with:
@@ -184,7 +185,7 @@ jobs:
 
       # Upload digest to an artifact, so that it can be used in manifest below
       - name: Upload Docker build digest to artifact
-        #if: ${{ ! matrix.isPr }}
+        if: ${{ ! matrix.isPr }}
         uses: actions/upload-artifact@v4
         with:
           name: digests-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
@@ -195,7 +196,7 @@ jobs:
       # https://github.com/docker/login-action
       - name: Login to DockerHub
         # Only login if not a PR, as PRs only trigger a Docker build and not a push
-        #if: ${{ ! matrix.isPr }}
+        if: ${{ ! matrix.isPr }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -273,7 +274,7 @@ jobs:
   # (e.g. AMD64 and ARM64 should be listed as options under the same tagged Docker image)
   docker-build_manifest:
     # Only run if this is NOT a PR
-    #if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     needs:
       - docker-build
