@@ -4,6 +4,10 @@
 # This is used by docker.yml for all Docker image builds
 name: Reusable DSpace Docker Build
 
+permissions:
+  contents: read  #  to fetch code (actions/checkout)
+  packages: write #  to write images to GitHub Container Registry
+
 on:
   workflow_call:
     # Possible Inputs to this reusable job
@@ -121,10 +125,10 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_BUILD_REGISTRY }}
-          username: tdonohue
-          password: ${{ secrets.GHCR_ACCESS_TOKEN }}
-          #username: ${{ github.repository_owner }}
-          #password: ${{ secrets.GITHUB_TOKEN }}
+          #username: tdonohue
+          #password: ${{ secrets.GHCR_ACCESS_TOKEN }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # https://github.com/docker/setup-qemu-action
       - name: Set up QEMU emulation to build for multiple architectures
@@ -165,6 +169,8 @@ jobs:
             ${{ inputs.dockerfile_additional_contexts }}
           context: ${{ inputs.dockerfile_context }}
           file: ${{ inputs.dockerfile_path }}
+          build-args:
+            DOCKER_REGISTRY=${{ env.DOCKER_BUILD_REGISTRY }}
           platforms: ${{ matrix.arch }}
           push: true
           # Use tags / labels provided by 'docker/metadata-action' above
@@ -235,20 +241,22 @@ jobs:
       #
       # These steps build the images and cache/store as a build artifact.
       # These artifacts can then be used by later jobs to install the
-      # brand-new images for automated testing. For non-PRs, this cache is
-      # also used to avoid pulling the images we just built from DockerHub.
+      # brand-new images for automated testing.
       #--------------------------------------------------------------
 
       # Build local image (again) and store in a TAR file in /tmp directory
-      # NOTE: This build is run for both PRs and non-PRs as it's used to "cache" our built images as artifacts.
-      # NOTE #2: This cannot be combined with push to DockerHub registry above as it's a different type of output.
+      # This step is only done for AMD64, as that's the only image we use in our automated testing (at this time).
+      # NOTE: This cannot be combined with push to DockerHub registry above as it's a different type of output.
       - name: Build and push image to local TAR file
+        if: ${{ matrix.arch == 'linux/amd64'}}
         uses: docker/build-push-action@v5
         with:
           build-contexts: |
             ${{ inputs.dockerfile_additional_contexts }}
           context: ${{ inputs.dockerfile_context }}
           file: ${{ inputs.dockerfile_path }}
+          build-args:
+            DOCKER_REGISTRY=${{ env.DOCKER_BUILD_REGISTRY }}
           platforms: ${{ matrix.arch }}
           tags: ${{ steps.meta_build.outputs.tags }}
           labels: ${{ steps.meta_build.outputs.labels }}
@@ -260,7 +268,9 @@ jobs:
           outputs: type=docker,dest=/tmp/${{ inputs.build_id }}.tar
 
       # Upload the local docker image (in TAR file) to a build Artifact
+      # This step is only done for AMD64, as that's the only image we use in our automated testing (at this time).
       - name: Upload local image TAR to artifact
+        if: ${{ matrix.arch == 'linux/amd64'}}
         uses: actions/upload-artifact@v4
         with:
           name: docker-image-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
@@ -293,14 +303,10 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.DOCKER_BUILD_REGISTRY }}
-          username: tdonohue
-          password: ${{ secrets.GHCR_ACCESS_TOKEN }}
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+          #username: tdonohue
+          #password: ${{ secrets.GHCR_ACCESS_TOKEN }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -317,7 +323,7 @@ jobs:
           tags: ${{ env.IMAGE_TAGS }}
           flavor: ${{ env.TAGS_FLAVOR }}
 
-      - name: Create manifest list from digests and push
+      - name: Create manifest list from digests and push to GitHub Container Registry
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
@@ -326,3 +332,20 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+      - name: Create manifest list from digests and push to DockerHub
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+          $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+
