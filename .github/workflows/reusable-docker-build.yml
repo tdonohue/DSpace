@@ -207,6 +207,10 @@ jobs:
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
 
+      - name: Inspect image copied to DockerHub
+        run: |
+          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}
+
       # If this build is NOT a PR and passed in a REDEPLOY_SANDBOX_URL secret,
       # Then redeploy https://sandbox.dspace.org if this build is for our deployment architecture and 'main' branch.
       - name: Redeploy sandbox.dspace.org (based on main branch)
