@@ -217,11 +217,13 @@ jobs:
           ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
 
       # Inspect the Docker image we copied to DockerHub
+      # Get the (raw) JSON from the inspection and then parse out the manifest related to our current architecture.
+      # Save the digest from that manifest to a file.
       - name: Inspect image copied to DockerHub and export digest
         if: ${{ ! matrix.isPr }}
         run: |
           mkdir -p /tmp/digests/docker
-          inspection=`docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }}`
+          inspection=`docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} --raw`
           echo $inspection
           digest=`echo $inspection | jq -cr '.manifests[] | select(.platform.architecture | contains("${{env.ARCH_PROCESSOR}}")) | .digest'`
           touch "/tmp/digests/docker/${digest#sha256:}"
