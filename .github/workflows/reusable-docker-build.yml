@@ -151,15 +151,16 @@ jobs:
           tags: ${{ env.IMAGE_TAGS }}
           flavor: ${{ env.TAGS_FLAVOR }}
 
-      #------------------------------------------------------------
-      # Build & deploy steps for new commits to a branch (non-PRs)
+      #--------------------------------------------------------------------
+      # First, for all branch commits (non-PRs) we build the image & upload
+      # to GitHub Container Registry (GHCR). After uploading the image
+      # to GHCR, we store the image digest in an artifact, so we can
+      # create a merged manifest later (see 'docker-build_manifest' job).
       #
-      # These steps build the images, push to DockerHub, and
-      # (if necessary) redeploy demo/sandbox sites.
-      #------------------------------------------------------------
+      # NOTE: We use GHCR in order to avoid aggressive rate limits at DockerHub.
+      #--------------------------------------------------------------------
       # https://github.com/docker/build-push-action
       - name: Build and push image to GitHub Container Registry
-        # Only build & push if not a PR
         if: ${{ ! matrix.isPr }}
         id: docker_build
         uses: docker/build-push-action@v5
@@ -198,6 +199,58 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      #------------------------------------------------------------------------------
+      # Second, we build the image again in order to store it in a local TAR file.
+      # This TAR of the image is cached/saved as an artifact, so that it can be used
+      # by later jobs to install the brand-new images for automated testing.
+      # This TAR build is performed BOTH for PRs and for branch commits (non-PRs).
+      #
+      # (This approach has the advantage of avoiding having to download the newly built
+      # image from DockerHub or GHCR during automated testing.)
+      #
+      # See the 'docker-deploy' job in docker.yml as an example of where this TAR is used.
+      #-------------------------------------------------------------------------------
+      # Build local image (again) and store in a TAR file in /tmp directory
+      # This step is only done for AMD64, as that's the only image we use in our automated testing (at this time).
+      # NOTE: This step cannot be combined with the build above as it's a different type of output.
+      - name: Build and push image to local TAR file
+        if: ${{ matrix.arch == 'linux/amd64'}}
+        uses: docker/build-push-action@v5
+        with:
+          build-contexts: |
+            ${{ inputs.dockerfile_additional_contexts }}
+          context: ${{ inputs.dockerfile_context }}
+          file: ${{ inputs.dockerfile_path }}
+          build-args:
+            DOCKER_REGISTRY=${{ env.DOCKER_BUILD_REGISTRY }}
+          platforms: ${{ matrix.arch }}
+          tags: ${{ steps.meta_build.outputs.tags }}
+          labels: ${{ steps.meta_build.outputs.labels }}
+          # Use GitHub cache to load cached Docker images and cache the results of this build
+          # This decreases the number of images we need to fetch from DockerHub
+          cache-from: type=gha,scope=${{ inputs.build_id }}
+          cache-to: type=gha,scope=${{ inputs.build_id }},mode=max
+          # Export image to a local TAR file
+          outputs: type=docker,dest=/tmp/${{ inputs.build_id }}.tar
+
+      # Upload the local docker image (in TAR file) to a build Artifact
+      # This step is only done for AMD64, as that's the only image we use in our automated testing (at this time).
+      - name: Upload local image TAR to artifact
+        if: ${{ matrix.arch == 'linux/amd64'}}
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
+          path: /tmp/${{ inputs.build_id }}.tar
+          if-no-files-found: error
+          retention-days: 1
+
+      #--------------------------------------------------------------------
+      # Third, we *copy* the built image to DockerHub. Then we obtain the
+      # DockerHub image digest & store the image digest in an artifact, so we can
+      # create a merged manifest later (see 'docker-build_manifest' job).
+      #
+      # NOTE: We copy the image in order to avoid building it again for DockerHub.
+      #--------------------------------------------------------------------
       # https://github.com/docker/login-action
       # NOTE: We wait to login to DockerHub to avoid DockerHub's aggressive rate limiting.
       - name: Login to DockerHub
@@ -238,6 +291,10 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      #--------------------------------------------------------------------
+      # Finally, we check whether demo.dspace.org or sandbox.dspace.org need
+      # to be redeployed based on these new images.
+      #--------------------------------------------------------------------
       # If this build is NOT a PR and passed in a REDEPLOY_SANDBOX_URL secret,
       # Then redeploy https://sandbox.dspace.org if this build is for our deployment architecture and 'main' branch.
       - name: Redeploy sandbox.dspace.org (based on main branch)
@@ -260,53 +317,12 @@ jobs:
         run: |
           curl -X POST $REDEPLOY_DEMO_URL
 
-      #-------------------------------------------------------------
-      # Shared Build steps.
-      # These are used for PRs as well as new commits to a branch (non-PRs)
-      #
-      # These steps build the images and cache/store as a build artifact.
-      # These artifacts can then be used by later jobs to install the
-      # brand-new images for automated testing.
-      #--------------------------------------------------------------
-
-      # Build local image (again) and store in a TAR file in /tmp directory
-      # This step is only done for AMD64, as that's the only image we use in our automated testing (at this time).
-      # NOTE: This cannot be combined with push to DockerHub registry above as it's a different type of output.
-      - name: Build and push image to local TAR file
-        if: ${{ matrix.arch == 'linux/amd64'}}
-        uses: docker/build-push-action@v5
-        with:
-          build-contexts: |
-            ${{ inputs.dockerfile_additional_contexts }}
-          context: ${{ inputs.dockerfile_context }}
-          file: ${{ inputs.dockerfile_path }}
-          build-args:
-            DOCKER_REGISTRY=${{ env.DOCKER_BUILD_REGISTRY }}
-          platforms: ${{ matrix.arch }}
-          tags: ${{ steps.meta_build.outputs.tags }}
-          labels: ${{ steps.meta_build.outputs.labels }}
-          # Use GitHub cache to load cached Docker images and cache the results of this build
-          # This decreases the number of images we need to fetch from DockerHub
-          cache-from: type=gha,scope=${{ inputs.build_id }}
-          cache-to: type=gha,scope=${{ inputs.build_id }},mode=max
-          # Export image to a local TAR file
-          outputs: type=docker,dest=/tmp/${{ inputs.build_id }}.tar
-
-      # Upload the local docker image (in TAR file) to a build Artifact
-      # This step is only done for AMD64, as that's the only image we use in our automated testing (at this time).
-      - name: Upload local image TAR to artifact
-        if: ${{ matrix.arch == 'linux/amd64'}}
-        uses: actions/upload-artifact@v4
-        with:
-          name: docker-image-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
-          path: /tmp/${{ inputs.build_id }}.tar
-          if-no-files-found: error
-          retention-days: 1
-
-  # Merge Docker digests (from various architectures) into a manifest.
-  # This runs after all Docker builds complete above, and it tells hub.docker.com
+  ##########################################################################################
+  # Merge Docker digests (from various architectures) into a single manifest.
+  # This runs after all Docker builds complete above, and it tells DockerHub & GHCR
   # that these builds should be all included in the manifest for this tag.
   # (e.g. AMD64 and ARM64 should be listed as options under the same tagged Docker image)
+  ##########################################################################################
   docker-build_manifest:
     # Only run if this is NOT a PR
     if: ${{ github.event_name != 'pull_request' }}
@@ -314,6 +330,10 @@ jobs:
     needs:
       - docker-build
     steps:
+      #--------------------------------------------------------------------
+      # First, download the digests for GitHub Container Registry (GHCR),
+      # create a merged manifest and upload to GHCR.
+      #--------------------------------------------------------------------
       - name: Download GitHub Container Registry build digests
         uses: actions/download-artifact@v4
         with:
@@ -356,6 +376,10 @@ jobs:
         run: |
           docker buildx imagetools inspect ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
 
+      #--------------------------------------------------------------------
+      # Second, download the digests for DockerHub, create a merged manifest
+      # and upload to DockerHub.
+      #--------------------------------------------------------------------
       - name: Download DockerHub build digests
         uses: actions/download-artifact@v4
         with:
