@@ -102,13 +102,18 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # This step converts the slashes in the "arch" matrix values above into dashes & saves to env.ARCH_NAME
+      # This step creates two custom environment variables.
+      # First, it converts the slashes in the "arch" matrix values above into dashes & saves to env.ARCH_NAME
       # E.g. "linux/amd64" becomes "linux-amd64"
       # This is necessary because all upload artifacts CANNOT have special chars (like slashes)
+      # Second, it removes everything before the slash in the "arch" matrix values & saves to env.ARCH_PROCESSOR
+      # E.g. "linux/amd64" becomes "amd64"
+      # NOTE: The syntax below is Bash Parameter Substitution
       - name: Prepare
         run: |
           platform=${{ matrix.arch }}
           echo "ARCH_NAME=${platform//\//-}" >> $GITHUB_ENV
+          echo "ARCH_PROCESSOR=${platform##*/}" >> $GITHUB_ENV
 
       # https://github.com/actions/checkout
       - name: Checkout codebase
@@ -175,41 +180,61 @@ jobs:
           cache-from: type=gha,scope=${{ inputs.build_id }}
           cache-to: type=gha,scope=${{ inputs.build_id }},mode=max
 
-      # Export the digest of Docker build locally (for non PRs only)
-      - name: Export Docker build digest
+      # Export the digest of GHCR Docker build locally
+      - name: Export GitHub Container Registry build digest
         if: ${{ ! matrix.isPr }}
         run: |
-            mkdir -p /tmp/digests
+            mkdir -p /tmp/digests/ghcr
             digest="${{ steps.docker_build.outputs.digest }}"
-            touch "/tmp/digests/${digest#sha256:}"
+            touch "/tmp/digests/ghcr/${digest#sha256:}"
 
-      # Upload digest to an artifact, so that it can be used in manifest below
-      - name: Upload Docker build digest to artifact
+      # Upload GHCR digest to an artifact, so that it can be used in manifest below
+      - name: Upload GitHub Container Registry build digest to artifact
         if: ${{ ! matrix.isPr }}
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
-          path: /tmp/digests/*
+          name: digests-ghcr-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
+          path: /tmp/digests/ghcr/*
           if-no-files-found: error
           retention-days: 1
 
       # https://github.com/docker/login-action
+      # NOTE: We wait to login to DockerHub to avoid DockerHub's aggressive rate limiting.
       - name: Login to DockerHub
-        # Only login if not a PR, as PRs only trigger a Docker build and not a push
         if: ${{ ! matrix.isPr }}
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
+      # Copy the Docker image built above (for GHCR) to DockerHub
+      # NOTE: This uses the GHCR metadata (created above) but removes the "ghcr.io/" prefix from the tags. That ensures
+      # we are creating/copying the image to the default registry (DockerHub)
       - name: Copy image to DockerHub
+        if: ${{ ! matrix.isPr }}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Inspect image copied to DockerHub
+      # Inspect the Docker image we copied to DockerHub
+      - name: Inspect image copied to DockerHub and export digest
+        if: ${{ ! matrix.isPr }}
         run: |
-          docker buildx imagetools inspect ${{ env.IMAGE_NAME }}
+          mkdir -p /tmp/digests/docker
+          inspection=`docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }}`
+          echo $inspection
+          digest=`echo $inspection | jq -cr '.manifests[] | select(.platform.architecture | contains("${{env.ARCH_PROCESSOR}}")) | .digest'`
+          touch "/tmp/digests/docker/${digest#sha256:}"
+
+      # Upload DockerHub digest to an artifact, so that it can be used in manifest below
+      - name: Upload DockerHub build digest to artifact
+        if: ${{ ! matrix.isPr }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-docker-${{ inputs.build_id }}-${{ env.ARCH_NAME }}
+          path: /tmp/digests/docker/*
+          if-no-files-found: error
+          retention-days: 1
 
       # If this build is NOT a PR and passed in a REDEPLOY_SANDBOX_URL secret,
       # Then redeploy https://sandbox.dspace.org if this build is for our deployment architecture and 'main' branch.
@@ -287,12 +312,12 @@ jobs:
     needs:
       - docker-build
     steps:
-      - name: Download Docker build digests
+      - name: Download GitHub Container Registry build digests
         uses: actions/download-artifact@v4
         with:
-          path: /tmp/digests
+          path: /tmp/digests/ghcr
           # Download digests for both AMD64 and ARM64 into same directory
-          pattern: digests-${{ inputs.build_id }}-*
+          pattern: digests-ghcr-${{ inputs.build_id }}-*
           merge-multiple: true
 
       - name: Login to GitHub Container Registry
@@ -320,14 +345,22 @@ jobs:
           flavor: ${{ env.TAGS_FLAVOR }}
 
       - name: Create manifest list from digests and push to GitHub Container Registry
-        working-directory: /tmp/digests
+        working-directory: /tmp/digests/ghcr
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           $(printf '${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
-      - name: Inspect image
+      - name: Inspect manifest in GitHub Container Registry
         run: |
           docker buildx imagetools inspect ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+
+      - name: Download DockerHub build digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests/docker
+          # Download digests for both AMD64 and ARM64 into same directory
+          pattern: digests-docker-${{ inputs.build_id }}-*
+          merge-multiple: true
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -336,12 +369,12 @@ jobs:
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
       - name: Create manifest list from digests and push to DockerHub
-        working-directory: /tmp/digests
+        working-directory: /tmp/digests/docker
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
 
-      - name: Inspect image
+      - name: Inspect manifest in DockerHub
         run: |
           docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
 
