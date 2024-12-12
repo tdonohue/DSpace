@@ -251,6 +251,8 @@ jobs:
       #
       # NOTE: We copy the image in order to avoid building it again for DockerHub.
       #--------------------------------------------------------------------
+      # This regctl tool is used to more easily copy the image to DockerHub and obtain the digest from DockerHub
+      # See https://github.com/regclient/regclient/blob/main/docs/regctl.md
       - name: Install regctl for Docker registry tools
         if: ${{ ! matrix.isPr }}
         uses: regclient/actions/regctl-installer@main
@@ -266,40 +268,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      - name: Copy image from GitHub Container Registry to DockerHub
+      # Copy the image from GHCR to DockerHub
+      # After the copy, we **immediately** logout of DockerHub to avoid hitting rate limits for logged in accounts.
+      - name: Copy image from GHCR to DockerHub (and logout of DockerHub)
         if: ${{ ! matrix.isPr }}
         run: |
           regctl image copy ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} docker.io/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }}
           docker logout docker.io
 
+      # Obtain the digest of the new image just copied to DockerHub
       - name: Get build digest for DockerHub image
         if: ${{ ! matrix.isPr }}
         run: |
-          digest=`regctl image digest docker.io/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} -v error`
+          digest=`regctl image digest docker.io/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} --platform ${{ matrix.arch }} --verbosity error`
           echo $digest
           mkdir -p /tmp/digests/docker
           touch "/tmp/digests/docker/${digest#sha256:}"
-
-      # Copy the Docker image built above (for GHCR) to DockerHub
-      # NOTE: This uses the GHCR metadata (created above) but removes the "ghcr.io/" prefix from the tags. That ensures
-      # we are creating/copying the image to the default registry (DockerHub)
-      #- name: Copy image to DockerHub
-      #  if: ${{ ! matrix.isPr }}
-      #  run: |
-      #    docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-      #    ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}
-
-      # Inspect the Docker image we copied to DockerHub
-      # Get the (raw) JSON from the inspection and then parse out the manifest related to our current architecture.
-      # Save the digest from that manifest to a file.
-      #- name: Inspect image copied to DockerHub and export digest
-      #  if: ${{ ! matrix.isPr }}
-      #  run: |
-      #    mkdir -p /tmp/digests/docker
-      #    inspection=`docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} --raw`
-      #    echo $inspection
-      #    digest=`echo $inspection | jq -cr '.manifests[] | select(.platform.architecture | contains("${{env.ARCH_PROCESSOR}}")) | .digest'`
-      #    touch "/tmp/digests/docker/${digest#sha256:}"
 
       # Upload DockerHub digest to an artifact, so that it can be used in manifest below
       - name: Upload DockerHub build digest to artifact
@@ -414,11 +398,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      - name: Create manifest list from digests and push to DockerHub
+      - name: Create manifest list from digests and push to DockerHub (and logout of DockerHub)
         working-directory: /tmp/digests/docker
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ") | gsub("${{env.DOCKER_BUILD_REGISTRY}}/"; "")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
           $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
+          docker logout docker.io
 
       - name: Inspect manifest in DockerHub
         run: |
