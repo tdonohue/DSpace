@@ -251,6 +251,12 @@ jobs:
       #
       # NOTE: We copy the image in order to avoid building it again for DockerHub.
       #--------------------------------------------------------------------
+      - name: Install regctl for Docker registry tools
+        if: ${{ ! matrix.isPr }}
+        uses: regclient/actions/regctl-installer@main
+        with:
+          release: 'v0.8.0'
+
       # https://github.com/docker/login-action
       # NOTE: We wait to login to DockerHub to avoid DockerHub's aggressive rate limiting.
       - name: Login to DockerHub
@@ -260,17 +266,11 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      - name: Install regctl
-        if: ${{ ! matrix.isPr }}
-        uses: regclient/actions/regctl-installer@main
-        with:
-          release: 'v0.8.0'
-
-      - name: Copy image to DockerHub and immediately logout
+      - name: Copy image from GitHub Container Registry to DockerHub
         if: ${{ ! matrix.isPr }}
         run: |
           regctl image copy ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} docker.io/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }}
-          regctl registry logout docker.io
+          docker logout docker.io
 
       - name: Get build digest for DockerHub image
         if: ${{ ! matrix.isPr }}
