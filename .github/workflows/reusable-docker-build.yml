@@ -273,7 +273,7 @@ jobs:
       - name: Copy image from GHCR to DockerHub (and logout of DockerHub)
         if: ${{ ! matrix.isPr }}
         run: |
-          regctl image copy ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} docker.io/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }}
+          regctl image copy ${{ env.DOCKER_BUILD_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} docker.io/${{ env.IMAGE_NAME }}:${{ steps.meta_build.outputs.version }} --platform ${{ matrix.arch }}
           docker logout docker.io
 
       # Obtain the digest of the new image just copied to DockerHub
