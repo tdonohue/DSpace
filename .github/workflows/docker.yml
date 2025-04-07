@@ -24,7 +24,7 @@ jobs:
   ####################################################
   dspace-dependencies:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-dependencies
@@ -39,7 +39,7 @@ jobs:
   #######################################
   dspace:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
     uses: ./.github/workflows/reusable-docker-build.yml
@@ -60,7 +60,7 @@ jobs:
   #############################################################
   dspace-test:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
     uses: ./.github/workflows/reusable-docker-build.yml
@@ -80,7 +80,7 @@ jobs:
   ###########################################
   dspace-cli:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     # Must run after 'dspace-dependencies' job above
     needs: dspace-dependencies
     uses: ./.github/workflows/reusable-docker-build.yml
@@ -97,7 +97,7 @@ jobs:
   ###########################################
   dspace-solr:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-solr
@@ -118,7 +118,7 @@ jobs:
   ###########################################################
   dspace-postgres-pgcrypto:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-postgres-pgcrypto-prod
@@ -135,7 +135,7 @@ jobs:
   ########################################################################
   dspace-postgres-pgcrypto-loadsql:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     uses: ./.github/workflows/reusable-docker-build.yml
     with:
       build_id: dspace-postgres-pgcrypto-loadsql
@@ -155,7 +155,7 @@ jobs:
   #################################################################################
   docker-deploy:
     # Ensure this job never runs on forked repos. It's only executed for 'dspace/dspace'
-    if: github.repository == 'dspace/dspace'
+    if: github.repository == 'tdonohue/dspace'
     runs-on: ubuntu-latest
     # Must run after all major images are built
     needs: [dspace, dspace-test, dspace-cli, dspace-postgres-pgcrypto, dspace-solr]
