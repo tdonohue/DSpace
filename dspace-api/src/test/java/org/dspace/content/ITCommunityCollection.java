@@ -215,6 +215,7 @@ public class ITCommunityCollection extends AbstractIntegrationTest {
         // Create a bitstream for one item
         File f = new File(testProps.get("test.bitstream").toString());
         Bitstream bitstream = itemService.createSingleBitstream(context, new FileInputStream(f), item);
+        context.commit();
 
         // Done creating the objects. Turn auth system back on
         context.restoreAuthSystemState();
@@ -223,30 +224,35 @@ public class ITCommunityCollection extends AbstractIntegrationTest {
         context.setCurrentUser(commAdmin);
 
         // Test deletion of single Bitstream as a Community Admin (delete just flags as deleted)
+        bitstream = context.reloadEntity(bitstream);
         bitstreamService.delete(context, bitstream);
         assertTrue("Community Admin unable to flag Bitstream as deleted",
                    bitstream.isDeleted());
         // NOTE: A Community Admin CANNOT "expunge" a Bitstream, as delete() removes all their permissions
 
         // Test deletion of single Item as a Community Admin
+        item2 = context.reloadEntity(item2);
         UUID itemId = item2.getID();
         itemService.delete(context, item2);
         assertThat("Community Admin unable to delete sub-Item",
                    itemService.find(context, itemId), nullValue());
 
         // Test deletion of single Collection as a Community Admin
+        grandchildCol = context.reloadEntity(grandchildCol);
         UUID collId = grandchildCol.getID();
         collectionService.delete(context, grandchildCol);
         assertThat("Community Admin unable to delete sub-Collection",
                    collectionService.find(context, collId), nullValue());
 
         // Test deletion of single Sub-Community as a Community Admin
+        child2 = context.reloadEntity(child2);
         UUID commId = child2.getID();
         communityService.delete(context, child2);
         assertThat("Community Admin unable to delete sub-Community",
                    communityService.find(context, commId), nullValue());
 
         // Test deletion of single Sub-Community with own admin group
+        child3 = context.reloadEntity(child3);
         communityService.createAdministrators(context, child3);
         commId = child3.getID();
         communityService.delete(context, child3);
@@ -254,6 +260,7 @@ public class ITCommunityCollection extends AbstractIntegrationTest {
                 communityService.find(context, commId), nullValue());
 
         // Test deletion of Sub-Community Hierarchy as a Community Admin
+        child = context.reloadEntity(child);
         commId = child.getID();
         collId = childCol.getID();
         itemId = item.getID();
