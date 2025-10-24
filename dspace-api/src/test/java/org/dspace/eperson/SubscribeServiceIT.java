@@ -192,6 +192,8 @@ public class SubscribeServiceIT extends AbstractIntegrationTestWithDatabase {
 
         context.setCurrentUser(admin);
         subscribeService.unsubscribe(context, subscribingUser, secondCollection);
+        // Ensure unsubscribe has been persisted to the database
+        context.commit();
         context.setCurrentUser(subscribingUser);
 
         subscriptions =
@@ -217,6 +219,8 @@ public class SubscribeServiceIT extends AbstractIntegrationTestWithDatabase {
 
 
         subscribeService.unsubscribe(context, subscribingUser, secondCollection);
+        // Ensure unsubscribe has been persisted to the database
+        context.commit();
 
         subscriptions =
             subscribeService.findSubscriptionsByEPersonAndDso(context, subscribingUser,
@@ -366,6 +370,8 @@ public class SubscribeServiceIT extends AbstractIntegrationTestWithDatabase {
         assertThat(firstUserSubscriptionsWithOffset.size(), is(2));
 
         subscribeService.deleteByEPerson(context, firstSubscriber);
+        // Ensure deletion has been persisted to the database
+        context.commit();
         assertThat(subscribeService.findSubscriptionsByEPerson(context, firstSubscriber, 100, 0),
                    is(List.of()));
 
