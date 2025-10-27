@@ -85,6 +85,7 @@ public class AbstractBuilderCleanupUtil {
         map.put(RelationshipBuilder.class.getName(), new ArrayList<>());
         map.put(RequestItemBuilder.class.getName(), new ArrayList<>());
         map.put(PoolTaskBuilder.class.getName(), new ArrayList<>());
+        map.put(ProcessBuilder.class.getName(), new ArrayList<>());
         map.put(VersionBuilder.class.getName(), new ArrayList<>());
         map.put(WorkflowItemBuilder.class.getName(), new ArrayList<>());
         map.put(WorkspaceItemBuilder.class.getName(), new ArrayList<>());
@@ -102,7 +103,6 @@ public class AbstractBuilderCleanupUtil {
         map.put(MetadataFieldBuilder.class.getName(), new ArrayList<>());
         map.put(MetadataSchemaBuilder.class.getName(), new ArrayList<>());
         map.put(SiteBuilder.class.getName(), new ArrayList<>());
-        map.put(ProcessBuilder.class.getName(), new ArrayList<>());
     }
 
     /**
