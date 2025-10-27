@@ -99,6 +99,8 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
         workflowUserB = EPersonBuilder.createEPerson(context).withEmail("workflowUserB@example.org").build();
         workflowUserC = EPersonBuilder.createEPerson(context).withEmail("workflowUserC@example.org").build();
         workflowUserD = EPersonBuilder.createEPerson(context).withEmail("workflowUserD@example.org").build();
+        // Ensure test data is committed to database. This is necessary in order to delete users in tests.
+        context.commit();
 
         context.restoreAuthSystemState();
 
@@ -151,6 +153,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -224,6 +227,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -293,6 +297,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -365,6 +370,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -448,6 +454,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collectionA);
 
@@ -514,6 +521,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -586,6 +594,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -658,6 +667,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -734,6 +744,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -807,6 +818,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -884,6 +896,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -962,6 +975,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1038,6 +1052,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1105,6 +1120,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1170,6 +1186,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1235,6 +1252,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1303,6 +1321,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1373,6 +1392,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1442,6 +1462,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreAuthSystemState();
 
         Workflow workflow = XmlWorkflowServiceFactory.getInstance().getWorkflowFactory().getWorkflow(collection);
 
@@ -1471,22 +1492,24 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
 
     private void addUserToWorkflowGroup(EPerson ePerson, Collection collection, String roleName) throws SQLException {
         List<CollectionRole> roles = collectionRoleService.findByCollection(context, collection);
+        context.turnOffAuthorisationSystem();
         for (CollectionRole role : roles) {
             if (StringUtils.equals(role.getRoleId(), roleName)) {
                 Group group = role.getGroup();
                 groupService.addMember(context, group, ePerson);
             }
         }
-
+        context.restoreAuthSystemState();
     }
 
     private void executeWorkflowAction(HttpServletRequest httpServletRequest, EPerson user,
                                        Workflow workflow, XmlWorkflowItem workflowItem, String stepId, String actionId)
             throws Exception {
-        context.setCurrentUser(user);
+        context.switchContextUser(user);
         xmlWorkflowService.doState(context, user, httpServletRequest, workflowItem.getID(), workflow,
                                    workflow.getStep(stepId).getActionConfig(actionId));
-        context.setCurrentUser(null);
+        // Reset context to prior current user
+        context.restoreContextUser();
     }
 
     private void assertRemovalOfEpersonFromWorkflowGroup(EPerson ePerson, Collection collection, String roleName,
@@ -1495,6 +1518,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
         boolean deleteError = false;
 
         try {
+            context.turnOffAuthorisationSystem();
             List<CollectionRole> roles = collectionRoleService.findByCollection(context, collection);
             for (CollectionRole role : roles) {
                 if (StringUtils.equals(role.getRoleId(), roleName)) {
@@ -1503,6 +1527,7 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
                     deleteSuccess = true;
                 }
             }
+            context.restoreAuthSystemState();
         } catch (Exception ex) {
             if (ex instanceof IllegalStateException) {
                 deleteSuccess = false;
@@ -1527,7 +1552,10 @@ public class EPersonInWorkflowIT extends AbstractIntegrationTestWithDatabase {
         boolean deleteSuccess;
         boolean deleteError = false;
         try {
+            context.turnOffAuthorisationSystem();
+            ePerson = context.reloadEntity(ePerson);
             ePersonService.delete(context, ePerson);
+            context.restoreAuthSystemState();
             deleteSuccess = true;
         } catch (Exception ex) {
             if (ex instanceof IllegalStateException) {
