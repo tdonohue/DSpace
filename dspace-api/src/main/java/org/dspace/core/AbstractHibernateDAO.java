@@ -61,7 +61,7 @@ public abstract class AbstractHibernateDAO<T> implements GenericDAO<T> {
 
     @Override
     public void delete(Context context, T t) throws SQLException {
-        getHibernateSession(context).delete(t);
+        getHibernateSession(context).remove(t);
     }
 
     @Override
