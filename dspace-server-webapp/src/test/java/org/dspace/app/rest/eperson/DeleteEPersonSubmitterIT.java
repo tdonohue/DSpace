@@ -53,12 +53,8 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.factory.VersionServiceFactory;
 import org.dspace.versioning.service.VersioningService;
-import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
-import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.hamcrest.Matchers;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -71,9 +67,6 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
     protected InstallItemService installItemService = ContentServiceFactory.getInstance().getInstallItemService();
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance()
                                                                                .getWorkspaceItemService();
-    protected XmlWorkflowService xmlWorkflowService = XmlWorkflowServiceFactory.getInstance().getXmlWorkflowService();
-    protected XmlWorkflowItemService xmlWorkflowItemService = XmlWorkflowServiceFactory.getInstance()
-                                                                                       .getXmlWorkflowItemService();
     protected VersioningService versioningService = VersionServiceFactory.getInstance().getVersionService();
 
     protected RequestItemAuthorExtractor requestItemAuthorExtractor =
@@ -82,32 +75,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
                                  .getServiceByName(RequestItemHelpdeskStrategy.class.getName(),
                                          RequestItemAuthorExtractor.class);
 
-
-    private EPerson submitter;
-    private EPerson submitterForVersion1;
-    private EPerson submitterForVersion2;
-    private EPerson workflowUser;
-
     private static final Logger log = LogManager.getLogger();
-
-    @Before
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        context.turnOffAuthorisationSystem();
-
-        submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
-        workflowUser = EPersonBuilder.createEPerson(context).withEmail("workflowUser@example.org").build();
-        submitterForVersion1 = EPersonBuilder.createEPerson(context).withEmail("submitterForVersion1@example.org")
-                                             .build();
-        submitterForVersion2 = EPersonBuilder.createEPerson(context).withEmail("submitterForVersion2@example.org")
-                                             .build();
-
-        context.restoreAuthSystemState();
-
-    }
-
 
     /**
      * This test verifies that when the submitter Eperson is deleted, the delete
@@ -122,6 +90,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
         Community parent = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, parent)
                                                  .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
 
         WorkspaceItem wsi = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                                                 .withSubmitter(submitter)
@@ -131,6 +100,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
                                                 .build();
 
         Item installItem = installItemService.installItem(context, wsi);
+        context.restoreAuthSystemState();
 
         assertDeletionOfEperson(submitter);
 
@@ -166,6 +136,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
         Community parent = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, parent)
                                                  .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
 
         WorkspaceItem wsi = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                                                 .withSubmitter(submitter)
@@ -175,6 +146,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
                                                 .build();
 
         Item item = installItemService.installItem(context, wsi);
+        context.restoreAuthSystemState();
 
         List<Operation> opsToWithDraw = new ArrayList<>();
         ReplaceOperation replaceOperationToWithDraw = new ReplaceOperation("/withdrawn", true);
@@ -235,43 +207,64 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
         Community parent = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, parent)
                                                  .build();
-
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
+        context.switchContextUser(submitter);
         WorkspaceItem wsi = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
-                                                .withSubmitter(submitter)
                                                 .withTitle("Test Item")
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
+        context.restoreContextUser();
 
         Item item = installItemService.installItem(context, wsi);
 
-        context.setCurrentUser(submitter);
+        // Create a new Version (Version 1) using the same original submitter
+        context.switchContextUser(submitter);
         //TODO: Replace this with a REST call when possible
         Version version1 = versioningService.createNewVersion(context, item);
         Integer version1ID = version1.getID();
         WorkspaceItem version1WorkspaceItem = workspaceItemService.findByItem(context, version1.getItem());
         installItemService.installItem(context, version1WorkspaceItem);
+        context.restoreContextUser();
+        context.restoreAuthSystemState();
 
+        // Delete the submitter and verify the Item and Version 1 submitter are both null
         assertDeletionOfEperson(submitter);
         assertNull(retrieveItemSubmitter(item.getID()));
 
         Item version1Item = retrieveVersionItem(version1ID);
         assertNull(retrieveItemSubmitter(version1Item.getID()));
 
-
-        context.setCurrentUser(submitterForVersion1);
-
+        // Create a Version 2, using a new submitter
+        context.turnOffAuthorisationSystem();
+        EPerson submitterForVersion2 = EPersonBuilder.createEPerson(context)
+                                                     .withEmail("submitterForVersion2@example.org")
+                                                     .build();
+        context.switchContextUser(submitterForVersion2);
         Version version2 = versioningService.createNewVersion(context, item);
         Integer version2ID = version2.getID();
         WorkspaceItem version2WorkspaceItem = workspaceItemService.findByItem(context, version2.getItem());
         installItemService.installItem(context, version2WorkspaceItem);
-        Item version2Item = retrieveVersionItem(version2ID);
-        assertEquals(submitterForVersion1.getID(), retrieveItemSubmitter(version2Item.getID()).getID());
+        context.restoreContextUser();
+        context.restoreAuthSystemState();
 
-        context.setCurrentUser(submitterForVersion2);
+        // Ensure the Version 2 submitter is set appropriately
+        Item version2Item = retrieveVersionItem(version2ID);
+        assertEquals(submitterForVersion2.getID(), retrieveItemSubmitter(version2Item.getID()).getID());
+
+        // Create a Version 3, using a new submitter
+        context.turnOffAuthorisationSystem();
+        EPerson submitterForVersion3 = EPersonBuilder.createEPerson(context)
+                                                     .withEmail("submitterForVersion3@example.org")
+                                                     .build();
+        context.switchContextUser(submitterForVersion3);
         Version version3 = versioningService.createNewVersion(context, version2Item);
+        context.restoreContextUser();
+        context.restoreAuthSystemState();
+
+        // Verify we can delete the submitter of Version 3
         Integer version3ID = version3.getID();
-        assertDeletionOfEperson(submitterForVersion2);
+        assertDeletionOfEperson(submitterForVersion3);
 
         getClient(token).perform(get("/api/versioning/versions/" + version3ID + "/item"))
                         .andExpect(status().isNoContent());
@@ -292,6 +285,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
         Community parent = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, parent)
                                                  .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
 
         WorkspaceItem wsi = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
                                                 .withSubmitter(submitter)
@@ -299,7 +293,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
                                                 .withIssueDate("2019-03-06")
                                                 .withSubject("ExtraEntry")
                                                 .build();
-
+        context.restoreAuthSystemState();
 
         String token = getAuthToken(admin.getEmail(), password);
         getClient(token).perform(get("/api/submission/workspaceitems/" + wsi.getID()))
@@ -315,6 +309,11 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
     public void testWorkflowItemSubmitterDelete() throws Exception {
         context.turnOffAuthorisationSystem();
 
+        EPerson workflowUser = EPersonBuilder.createEPerson(context)
+                                             .withEmail("workflowUser@example.org")
+                                             .build();
+        EPerson submitter = EPersonBuilder.createEPerson(context).withEmail("submitter@example.org").build();
+
         Community parent = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, parent)
                                                  .withWorkflowGroup(1, workflowUser)
@@ -326,6 +325,7 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
                                                    .withIssueDate("2019-03-06")
                                                    .withSubject("ExtraEntry")
                                                    .build();
+        context.restoreAuthSystemState();
 
         String token = getAuthToken(admin.getEmail(), password);
         getClient(token).perform(get("/api/workflow/workflowitems/" + workflowItem.getID()))
@@ -378,8 +378,10 @@ public class DeleteEPersonSubmitterIT extends AbstractControllerIntegrationTest 
     }
 
     private void cleanupVersion(int id) throws SQLException {
+        context.turnOffAuthorisationSystem();
         Version version = versioningService.getVersion(context, id);
         versioningService.delete(context, version);
+        context.restoreAuthSystemState();
 
     }
 
