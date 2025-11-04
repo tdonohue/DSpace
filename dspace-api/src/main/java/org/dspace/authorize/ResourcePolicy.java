@@ -73,11 +73,11 @@ public class ResourcePolicy implements ReloadableEntity<Integer> {
     private int actionId;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "eperson_id")
     private EPerson eperson;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
     @JoinColumn(name = "epersongroup_id")
     private Group epersonGroup;
 
