@@ -74,16 +74,18 @@ public class RequestItemHelpdeskStrategyTest
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws SQLException {
+        // initialize a new context & load our test EPerson into that context.
         context = new Context();
-        context.setCurrentUser(johnDoe);
+        johnDoe = context.reloadEntity(johnDoe);
+        context.switchContextUser(johnDoe);
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, community).build();
         item = ItemBuilder.createItem(context, collection)
                 .build();
         context.restoreAuthSystemState();
-        context.setCurrentUser(null);
+        context.restoreContextUser();
     }
 
     /**
