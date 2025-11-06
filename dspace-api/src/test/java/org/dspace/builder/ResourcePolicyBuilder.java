@@ -117,11 +117,15 @@ public class ResourcePolicyBuilder extends AbstractBuilder<ResourcePolicy, Resou
         return resourcePolicyBuilder.create(context, ePerson, group);
     }
 
-    private ResourcePolicyBuilder create(Context context, final EPerson ePerson,
-                                         final Group epersonGroup)
+    private ResourcePolicyBuilder create(Context context, EPerson ePerson,
+                                         Group epersonGroup)
             throws SQLException, AuthorizeException {
         this.context = context;
-
+        // Reload the EPerson & Group into the current context before saving them to the ResourcePolicy.
+        // This avoids errors from Hibernate if the EPerson/Group has become detached from the session.
+        // If EPerson/Group is already up-to-date in the context, then it's a no-op.
+        ePerson = context.reloadEntity(ePerson);
+        epersonGroup = context.reloadEntity(epersonGroup);
         resourcePolicy = resourcePolicyService.create(context, ePerson, epersonGroup);
 
         return this;
