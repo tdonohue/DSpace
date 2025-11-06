@@ -50,7 +50,6 @@ import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.test.MetadataPatchSuite;
-import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -85,9 +84,6 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
 
     @Autowired
     CommunityService communityService;
-
-    @Autowired
-    AuthorizeService authorizeService;
 
     @Autowired
     ResourcePolicyService resoucePolicyService;
@@ -263,7 +259,10 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
 
         // ADD authorization on parent community
         context.setCurrentUser(eperson);
-        authorizeService.addPolicy(context, parentCommunity, Constants.ADD, eperson);
+        ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
+                             .withDspaceObject(parentCommunity)
+                             .withAction(Constants.ADD)
+                             .build();
         context.restoreAuthSystemState();
 
         String authToken = getAuthToken(eperson.getEmail(), password);
@@ -1833,7 +1832,10 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
                                           .build();
 
         context.setCurrentUser(eperson);
-        authorizeService.addPolicy(context, parentCommunity, Constants.DELETE, eperson);
+        ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
+                             .withDspaceObject(parentCommunity)
+                             .withAction(Constants.DELETE)
+                             .build();
 
         String token = getAuthToken(eperson.getEmail(), password);
 
@@ -1856,8 +1858,6 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
         getClient(token).perform(get("/api/core/communities/" + parentCommunity.getID().toString()))
                         .andExpect(status().isNotFound())
         ;
-
-        authorizeService.removePoliciesActionFilter(context, eperson, Constants.DELETE);
     }
 
     @Test
@@ -1902,7 +1902,10 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
                 .put("dc.title", new MetadataValueRest("Electronic theses and dissertations")));
 
         context.setCurrentUser(eperson);
-        authorizeService.addPolicy(context, parentCommunity, Constants.WRITE, eperson);
+        ResourcePolicyBuilder.createResourcePolicy(context, eperson, null)
+                             .withDspaceObject(parentCommunity)
+                             .withAction(Constants.WRITE)
+                             .build();
 
         context.restoreAuthSystemState();
 
@@ -1925,9 +1928,6 @@ public class CommunityRestRepositoryIT extends AbstractControllerIntegrationTest
                    )))
                    .andExpect(jsonPath("$._links.self.href", Matchers.containsString("/api/core/communities")))
         ;
-
-        authorizeService.removePoliciesActionFilter(context, eperson, Constants.DELETE);
-
     }
 
     @Test
