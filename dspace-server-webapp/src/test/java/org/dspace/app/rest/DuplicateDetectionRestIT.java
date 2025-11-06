@@ -130,8 +130,6 @@ public class DuplicateDetectionRestIT extends AbstractControllerIntegrationTest 
 
     @Test
     public void searchDuplicatesBySearchMethodTest() throws Exception {
-        String token = getAuthToken(admin.getEmail(), password);
-
         context.turnOffAuthorisationSystem();
 
         // Ingest three example items with slightly different titles
@@ -166,6 +164,8 @@ public class DuplicateDetectionRestIT extends AbstractControllerIntegrationTest 
         Item item2 = wfi2.getItem();
 
         context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
 
         getClient(token).perform(get("/api/submission/duplicates/search/findByItem?uuid=" + item1.getID()))
                 .andExpect(status().isOk())
