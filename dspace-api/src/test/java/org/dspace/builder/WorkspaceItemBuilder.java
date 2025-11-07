@@ -64,6 +64,10 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
         this.context = context;
 
         try {
+            // Before creating a new item, ensure our current user (who will create the item) is updated in Context.
+            // This provides safety against exceptions if the EPerson has become detached from Hibernate session.
+            context.setCurrentUser(context.reloadEntity(context.getCurrentUser()));
+
             if (uuid == null) {
                 workspaceItem = workspaceItemService.create(context, col, false);
             } else {
