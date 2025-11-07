@@ -261,6 +261,15 @@ public class Context implements AutoCloseable {
      * authenticated
      */
     public EPerson getCurrentUser() {
+        try {
+            // If current user is no longer in our cache, reload it into cache
+            // NOTE: This may occur if getCurrentUser() is called *after* a commit(), as the commit() will clear cache.
+            if (currentUser != null && !entityInCache(currentUser)) {
+                currentUser = reloadEntity(currentUser);
+            }
+        } catch (SQLException e) {
+            // If this occurs, then reload has failed which likely means our session is closed/invalid
+        }
         return currentUser;
     }
 
@@ -891,6 +900,17 @@ public class Context implements AutoCloseable {
     public void uncacheEntities() throws SQLException {
         dbConnection.uncacheEntities();
         reloadContextBoundEntities();
+    }
+
+    /**
+     * Return whether the given entity is currently available in the cache. This method can be useful to decide whether
+     * to call "reloadEntity()" (if entity should be in cache but isn't), or "uncacheEntity()" (if entity is in cache
+     * but is no longer needed).
+     * @param entity The entity to look in cache for
+     * @return true if entity is in cache. false otherwise
+     */
+    public boolean entityInCache(Object entity) {
+        return dbConnection.entityInCache(entity);
     }
 
     /**

@@ -263,6 +263,45 @@ public class ContextTest extends AbstractUnitTest {
     }
 
     /**
+     * Test how calling complete() in one context impacts another.
+     */
+    @Test
+    public void testCompleteInSeparateContext() throws SQLException, AuthorizeException, IOException {
+        // Create a new context, where we'll make some changes
+        Context instance1 = new Context();
+
+        // Allow full Admin perms in instance #1 (so we can create EPerson below)
+        when(authorizeServiceSpy.isAdmin(instance1)).thenReturn(true);
+
+        // Create a new EPerson to set as current user of instance #1
+        EPerson newUser = ePersonService.create(instance1);
+        newUser.setFirstName(instance1, "John");
+        newUser.setLastName(instance1, "Doe");
+        newUser.setEmail("john@email.com");
+        newUser.setCanLogIn(true);
+        instance1.setCurrentUser(newUser);
+
+        // Now, create a separate context with a different EPerson current user and call complete() on it immediately.
+        try (Context instance2 = new Context()) {
+            instance2.setCurrentUser(eperson);
+            instance2.complete();
+        }
+
+        // Original context should still be valid and have its current user set
+        assertTrue(instance1.isValid());
+        assertEquals(newUser, instance1.getCurrentUser());
+        // Verify also that the current user is still in the cache.
+        assertTrue(instance1.entityInCache(instance1.getCurrentUser()));
+
+        // Cleanup our new user in instance #1
+        newUser = context.reloadEntity(newUser);
+        ePersonService.delete(instance1, newUser);
+
+        // Cleanup our original context
+        cleanupContext(instance1);
+    }
+
+    /**
      * Test of commit method, of class Context.
      */
     @Test
@@ -314,6 +353,45 @@ public class ContextTest extends AbstractUnitTest {
         // Cleanup our new object & context
         ePersonService.delete(instance, newUser);
         cleanupContext(instance);
+    }
+
+    /**
+     * Test how calling commit() in one context impacts another.
+     */
+    @Test
+    public void testCommitInSeparateContext() throws SQLException, AuthorizeException, IOException {
+        // Create a new context, where we'll make some changes
+        Context instance1 = new Context();
+
+        // Allow full Admin perms in instance #1 (so we can create EPerson below)
+        when(authorizeServiceSpy.isAdmin(instance1)).thenReturn(true);
+
+        // Create a new EPerson to set as current user of instance #1
+        EPerson newUser = ePersonService.create(instance1);
+        newUser.setFirstName(instance1, "Janet");
+        newUser.setLastName(instance1, "smith");
+        newUser.setEmail("janet.smith@email.com");
+        newUser.setCanLogIn(true);
+        instance1.setCurrentUser(newUser);
+
+        // Now, create a separate context with a different EPerson current user and call commit() on it immediately.
+        try (Context instance2 = new Context()) {
+            instance2.setCurrentUser(eperson);
+            instance2.commit();
+        }
+
+        // Original context should still be valid and have its current user set
+        assertTrue(instance1.isValid());
+        assertEquals(newUser, instance1.getCurrentUser());
+        // Verify also that the current user is still in the cache.
+        assertTrue(instance1.entityInCache(instance1.getCurrentUser()));
+
+        // Cleanup our new user in instance #1
+        newUser = context.reloadEntity(newUser);
+        ePersonService.delete(instance1, newUser);
+
+        // Cleanup our original context
+        cleanupContext(instance1);
     }
 
     /**
@@ -582,5 +660,20 @@ public class ContextTest extends AbstractUnitTest {
 
         long newCacheSize = context.getDBConnection().getCacheSize();
         assertThat("Cache size should be reduced by one", newCacheSize, equalTo(oldCacheSize - 1));
+    }
+
+    @Test
+    public void testEntityInCache() throws Throwable {
+        // Load an entity
+        Group group = groupService.findByName(context, Group.ANONYMOUS);
+
+        // Loaded entity should now be in the cache
+        assertTrue(context.entityInCache(group));
+
+        // Uncache entity
+        context.uncacheEntity(group);
+
+        // Entity is no longer in cache
+        assertFalse(context.entityInCache(group));
     }
 }
