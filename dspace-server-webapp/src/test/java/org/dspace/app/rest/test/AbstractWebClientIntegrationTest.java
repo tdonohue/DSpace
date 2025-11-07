@@ -78,6 +78,11 @@ public class AbstractWebClientIntegrationTest extends AbstractIntegrationTestWit
         // in "could not initialize proxy - no Session" errors when using those entities in other tests (or other tests
         // would need to reload each test entity back into the Hibernate session)
         context.commit();
+
+        // After commit, objects may be detached from Hibernate session. So we need to reload the global EPersons into
+        // our existing context as tests still need access to these objects.
+        eperson = context.reloadEntity(eperson);
+        admin = context.reloadEntity(admin);
     }
 
     /**

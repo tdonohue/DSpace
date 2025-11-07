@@ -14,6 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.app.rest.test.AbstractWebClientIntegrationTest;
@@ -82,7 +83,7 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
     public static final TemporaryFolder uploadTempFolder = new TemporaryFolder();
 
     @Before
-    public void onlyRunIfConfigExists() {
+    public void onlyRunIfConfigExists() throws SQLException {
         // These integration tests REQUIRE that SWORDv2WebConfig is found/available (as this class deploys SWORDv2)
         // If this class is not available, the below "Assume" will cause all tests to be SKIPPED
         // NOTE: SWORDv2WebConfig is provided by the 'dspace-swordv2' module
@@ -146,7 +147,7 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
         context.turnOffAuthorisationSystem();
         // Create all content as the SAME EPERSON we will use to authenticate on this endpoint.
         // THIS IS REQUIRED as the /collections endpoint will only show YOUR ITEM SUBMISSIONS.
-        context.setCurrentUser(eperson);
+        context.switchContextUser(eperson);
         // Create a top level community and one Collection
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -164,6 +165,9 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
 
         // Above changes MUST be committed to the database for SWORDv2 to see them.
         context.commit();
+        // After commit, objects may be detached from Hibernate session. So we need to reload the EPerson we use below.
+        eperson = context.reloadEntity(eperson);
+        context.restoreContextUser();
         context.restoreAuthSystemState();
 
         // This Collection should exist on the /collection endpoint via its handle.
@@ -211,6 +215,9 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
                                                  .build();
         // Above changes MUST be committed to the database for SWORDv2 to see them.
         context.commit();
+        // After commit, objects may be detached from Hibernate session. So we need to reload the EPersons we use below.
+        eperson = context.reloadEntity(eperson);
+        admin = context.reloadEntity(admin);
         context.restoreAuthSystemState();
 
         // Add file
@@ -345,6 +352,8 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
 
         // Above changes MUST be committed to the database for SWORDv2 to see them.
         context.commit();
+        // After commit, objects may be detached from Hibernate session. So we need to reload the EPerson we use below.
+        eperson = context.reloadEntity(eperson);
         context.restoreAuthSystemState();
 
         // Edit link of WorkspaceItem is the Item UUID
@@ -411,6 +420,9 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
                                                           .build();
         // Above changes MUST be committed to the database for SWORDv2 to see them.
         context.commit();
+        // After commit, objects may be detached from Hibernate session. So we need to reload the EPersons we use below.
+        eperson = context.reloadEntity(eperson);
+        admin = context.reloadEntity(admin);
         context.restoreAuthSystemState();
 
         // Edit link of WorkflowItem is the Item UUID
@@ -480,7 +492,7 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
         context.turnOffAuthorisationSystem();
         // Create all content as the SAME EPERSON we will use to authenticate on this endpoint.
         // THIS IS REQUIRED as the /statements endpoint will only show YOUR ITEM SUBMISSIONS.
-        context.setCurrentUser(eperson);
+        context.switchContextUser(eperson);
         // Create a top level community and one Collection
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -499,6 +511,9 @@ public class Swordv2IT extends AbstractWebClientIntegrationTest {
 
         // Above changes MUST be committed to the database for SWORDv2 to see them.
         context.commit();
+        // After commit, objects may be detached from Hibernate session. So we need to reload the EPerson we use below.
+        eperson = context.reloadEntity(eperson);
+        context.restoreContextUser();
         context.restoreAuthSystemState();
 
         HttpHeaders authHeaders = new HttpHeaders();
