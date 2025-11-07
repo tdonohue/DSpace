@@ -894,6 +894,18 @@ public class Context implements AutoCloseable {
     }
 
     /**
+     * Return whether the given entity is currently available in the cache. This method can be useful to decide whether
+     * to call "reloadEntity()" (if entity should be in cache but isn't), or "uncacheEntity()" (if entity is in cache
+     * but is no longer needed).
+     * @param entity The entity to look in cache for
+     * @return true if entity is in cache. false otherwise
+     * @throws SQLException If an error occurs checking the database connection.
+     */
+    public boolean entityInCache(Object entity) throws SQLException {
+        return ((HibernateDBConnection) dbConnection).getSession().contains(entity);
+    }
+
+    /**
      * Remove an entity from the cache. This is useful when batch processing a large number of entities
      * when the calling code needs to retain some items in the cache while removing others.
      *
