@@ -160,33 +160,19 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
     }
 
     public MockHttpServletResponse getAuthResponse(String user, String password) throws Exception {
-        MockHttpServletResponse response = getClient().perform(post("/api/authn/login")
-                                                                   .param("user", user)
-                                                                   .param("password", password))
-                                                      .andReturn().getResponse();
-
-        // Reload the current user (EPerson) into the current context. After authentication in the Mock server, this
-        // EPerson object may end up detached from the Hibernate Session. Reloading it ensures that misleading Hibernate
-        // errors don't occur in Tests whenever this EPerson is used after authentication.
-        context.setCurrentUser(context.reloadEntity(context.getCurrentUser()));
-
-        return response;
+        return getClient().perform(post("/api/authn/login")
+                                       .param("user", user)
+                                       .param("password", password))
+                          .andReturn().getResponse();
     }
 
     public MockHttpServletResponse getAuthResponseWithXForwardedForHeader(String user, String password,
                                                                           String xForwardedFor) throws Exception {
-        MockHttpServletResponse response = getClient().perform(post("/api/authn/login")
-                                                                   .param("user", user)
-                                                                   .param("password", password)
-                                                                   .header("X-Forwarded-For", xForwardedFor))
-                                                      .andReturn().getResponse();
-
-        // Reload the current user (EPerson) into the current context. After authentication in the Mock server, this
-        // EPerson object may end up detached from the Hibernate Session. Reloading it ensures that misleading Hibernate
-        // errors don't occur in Tests whenever this EPerson is used after authentication.
-        context.setCurrentUser(context.reloadEntity(context.getCurrentUser()));
-
-        return response;
+        return getClient().perform(post("/api/authn/login")
+                                       .param("user", user)
+                                       .param("password", password)
+                                       .header("X-Forwarded-For", xForwardedFor))
+                          .andReturn().getResponse();
     }
 
 
