@@ -141,14 +141,7 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
                     inputRest.setType(inputType);
                 }
 
-                Context context = null;
-                Request currentRequest = requestService.getCurrentRequest();
-                if (currentRequest != null) {
-                    HttpServletRequest request = currentRequest.getHttpServletRequest();
-                    context = ContextUtil.obtainContext(request);
-                } else {
-                    context = new Context();
-                }
+                Context context = ContextUtil.obtainCurrentRequestContext();
 
                 if (Strings.CI.equals(dcinput.getInputType(), "group") ||
                     Strings.CI.equals(dcinput.getInputType(), "inline-group")) {
