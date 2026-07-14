@@ -45,11 +45,7 @@ public class HarvesterMetadataControllerIT extends AbstractControllerIntegration
 
         getClient().perform(
             get("/api/config/harvestermetadata"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$", Matchers.allOf(
-                            MetadataConfigsMatcher.matchMetadataConfigs(configs)
-                        )))
-                        .andExpect(jsonPath("$._links.self.href", endsWith("/api/config/harvestermetadata")));
+                        .andExpect(status().isUnauthorized());
 
         token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(
