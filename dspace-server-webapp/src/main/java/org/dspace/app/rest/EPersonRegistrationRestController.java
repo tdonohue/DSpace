@@ -24,6 +24,7 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -66,6 +67,7 @@ public class EPersonRegistrationRestController {
      * @throws Exception
      */
     @RequestMapping(method = RequestMethod.POST, value = "/{uuid}")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public ResponseEntity<RepresentationModel<?>> post(
         HttpServletRequest request,
         @PathVariable String uuid,
