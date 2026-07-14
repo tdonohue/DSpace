@@ -13,6 +13,7 @@ import org.dspace.app.rest.link.HalLinkService;
 import org.dspace.app.rest.model.hateoas.RootResource;
 import org.dspace.app.rest.repository.RootRestRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,7 @@ public class RootRestResourceController {
     ConverterService converter;
 
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("permitAll()")
     public RootResource listDefinedEndpoint(HttpServletRequest request) {
         return converter.toResource(rootRestRepository.getRoot(request));
     }

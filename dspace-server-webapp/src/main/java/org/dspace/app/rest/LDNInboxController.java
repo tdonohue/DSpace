@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,6 +60,7 @@ public class LDNInboxController {
      * @throws Exception
      */
     @PostMapping(value = "/inbox", consumes = "application/ld+json")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Object> inbox(HttpServletRequest request, @RequestBody Notification notification)
         throws Exception {
 
@@ -80,6 +82,7 @@ public class LDNInboxController {
      * @return ResponseEntity 200 with allow and accept-post headers
      */
     @RequestMapping(value = "/inbox", method = RequestMethod.OPTIONS)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<Void> options() {
         return ResponseEntity.ok()
             .allow(HttpMethod.OPTIONS, HttpMethod.POST)

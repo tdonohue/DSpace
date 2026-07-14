@@ -22,6 +22,7 @@ import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,6 +51,7 @@ public class OidcRestController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("permitAll()")
     public void oidc(HttpServletResponse response,
             @RequestParam(name = "redirectUrl", required = false) String redirectUrl) throws IOException {
         if (StringUtils.isBlank(redirectUrl)) {

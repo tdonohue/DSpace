@@ -22,6 +22,7 @@ import org.dspace.content.service.EntityTypeService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,6 +53,7 @@ public class EntityTypeLabelRestController {
     protected Utils utils;
 
     @GetMapping("/label/{entity-type-label}")
+    @PreAuthorize("permitAll()")
     public EntityTypeResource get(HttpServletRequest request, HttpServletResponse response,
                                   @PathVariable("entity-type-label") String label) {
         Context context = ContextUtil.obtainContext(request);

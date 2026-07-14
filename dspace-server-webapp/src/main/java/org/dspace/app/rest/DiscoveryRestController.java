@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.RepresentationModel;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -77,6 +78,7 @@ public class DiscoveryRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("permitAll()")
     public SearchSupportResource getSearchSupport(@RequestParam(name = "scope", required = false) String dsoScope,
                                                   @RequestParam(name = "configuration", required = false) String
                                                   configuration)
@@ -88,6 +90,7 @@ public class DiscoveryRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
+    @PreAuthorize("permitAll()")
     public SearchConfigurationResource getSearchConfiguration(
         @RequestParam(name = "scope", required = false) String dsoScope,
         @RequestParam(name = "configuration", required = false) String configuration) throws Exception {
@@ -104,6 +107,7 @@ public class DiscoveryRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/search/facets")
+    @PreAuthorize("permitAll()")
     public FacetsResource getFacets(@RequestParam(name = "query", required = false) String query,
                                     @RequestParam(name = "dsoType", required = false) List<String> dsoTypes,
                                     @RequestParam(name = "scope", required = false) String dsoScope,
@@ -131,6 +135,7 @@ public class DiscoveryRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/search/objects")
+    @PreAuthorize("permitAll()")
     public SearchResultsResource getSearchObjects(@RequestParam(name = "query", required = false) String query,
                                                   @RequestParam(name = "dsoType", required = false)
                                                           List<String> dsoTypes,
@@ -171,6 +176,7 @@ public class DiscoveryRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/facets")
+    @PreAuthorize("permitAll()")
     public FacetConfigurationResource getFacetsConfiguration(
         @RequestParam(name = "scope", required = false) String dsoScope,
         @RequestParam(name = "configuration", required = false) String configuration,
@@ -189,6 +195,7 @@ public class DiscoveryRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/facets/{name}")
+    @PreAuthorize("permitAll()")
     public RepresentationModel getFacetValues(@PathVariable("name") String facetName,
                                               @RequestParam(name = "prefix", required = false) String prefix,
                                               @RequestParam(name = "query", required = false) String query,

@@ -29,6 +29,7 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -61,38 +62,45 @@ public class StatisticsRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("permitAll()")
     public StatisticsSupportResource getStatisticsSupport() throws Exception {
         StatisticsSupportRest statisticsSupportRest = statisticsRestRepository.getStatisticsSupport();
         return converter.toResource(statisticsSupportRest);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/viewevents/{uuid}")
+    @PreAuthorize("permitAll()")
     public PagedModel<ViewEventResource> getViewEvent(@PathVariable(name = "uuid") UUID uuid) throws Exception {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/searchevents/{uuid}")
+    @PreAuthorize("permitAll()")
     public PagedModel<SearchEventResource> getSearchEvent(@PathVariable(name = "uuid") UUID uuid) throws Exception {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/viewevents")
+    @PreAuthorize("permitAll()")
     public PagedModel<ViewEventResource> getViewEvents() throws Exception {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/searchevents")
+    @PreAuthorize("permitAll()")
     public PagedModel<SearchEventResource> getSearchEvents() throws Exception {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/viewevents")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<RepresentationModel<?>> postViewEvent() throws Exception {
         ViewEventResource result = converter.toResource(viewEventRestRepository.createViewEvent());
         return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), result);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/searchevents")
+    @PreAuthorize("permitAll()")
     public ResponseEntity<RepresentationModel<?>> postSearchEvent() throws Exception {
         SearchEventResource result = converter.toResource(searchEventRestRepository.createSearchEvent());
         return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), result);

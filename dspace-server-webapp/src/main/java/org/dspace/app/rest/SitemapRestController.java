@@ -27,6 +27,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,6 +69,7 @@ public class SitemapRestController {
      * @return
      */
     @GetMapping("/{name}")
+    @PreAuthorize("permitAll()")
     public ResponseEntity retrieve(@PathVariable String name, HttpServletResponse response,
                                                        HttpServletRequest request) throws IOException, SQLException {
         // Find sitemap with given name in dspace/sitemaps
