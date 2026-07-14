@@ -20,6 +20,7 @@ import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -51,6 +52,7 @@ public class BitstreamCategoryRestController {
      * @throws AuthorizeException if the user is not authorized to perform the requested operation.
      */
     @RequestMapping(method = RequestMethod.PATCH)
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public ResponseEntity<RepresentationModel<?>> patch(HttpServletRequest request,
                                                         @RequestBody(required = true) JsonNode jsonNode)
         throws SQLException, AuthorizeException {
