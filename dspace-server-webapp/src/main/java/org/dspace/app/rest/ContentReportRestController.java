@@ -82,6 +82,7 @@ public class ContentReportRestController implements InitializingBean {
     }
 
     @RequestMapping(method = RequestMethod.GET)
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ContentReportSupportResource getContentReportSupport() {
         ContentReportSupportRest contentReportSupportRest = contentReportRestRepository.getContentReportSupport();
         return converter.toResource(contentReportSupportRest);
