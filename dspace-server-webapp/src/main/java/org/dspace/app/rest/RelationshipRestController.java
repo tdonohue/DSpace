@@ -19,6 +19,7 @@ import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -43,6 +44,7 @@ public class RelationshipRestController {
      */
     @RequestMapping(method = RequestMethod.PUT, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_DIGIT + "/leftItem",
             consumes = {"text/uri-list"})
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public RelationshipRest updateRelationshipLeft(@PathVariable Integer id, HttpServletResponse response,
                                                    HttpServletRequest request) throws SQLException {
         Context context = ContextUtil.obtainContext(request);
@@ -56,6 +58,7 @@ public class RelationshipRestController {
      */
     @RequestMapping(method = RequestMethod.PUT, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_DIGIT + "/rightItem",
             consumes = {"text/uri-list"})
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     public RelationshipRest updateRelationshipRight(@PathVariable Integer id, HttpServletResponse response,
                                                     HttpServletRequest request) throws SQLException {
         Context context = ContextUtil.obtainContext(request);
