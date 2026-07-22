@@ -1293,8 +1293,16 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         StringBuilder filterQuery = new StringBuilder();
         if (StringUtils.isNotBlank(field) && StringUtils.isNotBlank(value)) {
-            filterQuery.append(field);
+            // If the filter value is greater than 1000 characters, then consider it invalid.
+            // This is more likely to be a Denial of Service attack, as large filter values may cause the
+            // regular expressions below to return slowly. This constitutes a ReDoS attack.
+            if (value.length() > 1000) {
+                throw new IllegalArgumentException(
+                    "Refusing to process this query as the filter value for field '" + field +
+                        "' is more than 1,000 characters. This may be a ReDoS attack.");
+            }
 
+            filterQuery.append(field);
 
             if (operator.endsWith("equals")) {
                 final boolean isStandardField
